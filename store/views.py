@@ -1,74 +1,68 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product
 from category.models import Category
+from carts.models import CartItem
+from django.db.models import Q
+
+from carts.views import _cart_id
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator    
+from django.http import HttpResponse
 
 def store(request, category_slug=None):
-    selected_category = None
+    categories = None
     products = None
 
-    if category_slug is not None:
-        selected_category = get_object_or_404(Category, slug=category_slug)
-        products = Product.objects.filter(Category=selected_category, is_available=True)
+    if category_slug != None:
+        categories = get_object_or_404(Category, slug=category_slug)
+        products = Product.objects.filter(Category=categories, is_available=True)
+        paginator = Paginator(products, 3)
+        page = request.GET.get('page')
+        paged_products = paginator.get_page(page)
         product_count = products.count()
     else:
-        products = Product.objects.filter(is_available=True)
+        products = Product.objects.all().filter(is_available=True).order_by('id')
+        paginator = Paginator(products, 6)
+        page = request.GET.get('page')
+        paged_products = paginator.get_page(page)
         product_count = products.count()
 
     context = {
-        'products': products,
+        'products': paged_products,
         'product_count': product_count,
     }
-
     return render(request, 'store/store.html', context)
-
-def search(request):
-    """Basic search handler invoked from the navbar form.
-
-    * if the keyword contains two slash-separated slugs ("categoria/producto")
-      attempt to redirect directly to the detail page
-    * otherwise perform a simple case‑insensitive match against
-      ``product_name`` and render the normal store listing template
-    * if the keyword is missing or the lookup fails just fall back to the
-      store homepage
-    """
-
-    keyword = request.GET.get('keyword', '').strip()
-    if not keyword:
-        return redirect('store')
-
-    # try to interpret as category/product slugs first
-    parts = keyword.strip('/').split('/')
-    if len(parts) == 2:
-        cat_slug, prod_slug = parts
-        if cat_slug and prod_slug:
-            try:
-                # redirect will trigger the product_detail view which now uses
-                # the correct field name and loads the object into context
-                return redirect('product_detail', category_slug=cat_slug, product_slug=prod_slug)
-            except Exception:
-                # if the slug combination doesn't resolve, fall through and
-                # render the search results below rather than crashing
-                pass
-
-    # generic product name search
-    products = Product.objects.filter(product_name__icontains=keyword, is_available=True)
-    product_count = products.count()
-    context = {'products': products, 'product_count': product_count}
-    return render(request, 'store/store.html', context)
-
 
 
 def product_detail(request, category_slug, product_slug):
-    # ensure we query using the actual foreign‑key name (capital "Category").
-    # ``get_object_or_404`` returns a proper 404 instead of raising a generic
-    # exception and it keeps the template context intact.
-    single_product = get_object_or_404(
-        Product,
-        Category__slug=category_slug,
-        slug=product_slug,
-        is_available=True,
-    )
+    try:
+        single_product = Product.objects.get(Category__slug=category_slug, slug=product_slug)
+        in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request), product=single_product).exists()
+    except Exception as e:
+        raise e
+
     context = {
         'single_product': single_product,
+        'in_cart': in_cart,
     }
     return render(request, 'store/product_detail.html', context)
+
+
+def search(request):
+    products = None
+    product_count = 0
+    
+    if 'keyword' in request.GET:
+        keyword = request.GET['keyword']
+        if keyword:
+            products = Product.objects.filter(
+                Q(description__icontains=keyword) | Q(product_name__icontains=keyword),
+                is_available=True
+            ).order_by('-created_date')
+            product_count = products.count()
+    
+    context = {
+        'products': products,
+        'product_count': product_count,
+        'keyword': request.GET.get('keyword', ''),
+    }
+    return render(request, 'store/store.html', context)

@@ -20,3 +20,11 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
+class ProductFeature(models.Model):
+    product = models.ForeignKey(Product, related_name='features', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    value = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.name}: {self.value}"
+

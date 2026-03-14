@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section-content padding-y">
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Mi Cuenta</h4>
+                    <hr>
+                    <p><strong>Nombre:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                    <p><strong>Correo:</strong> {{ user.email }}</p>
+                    <p><strong>Usuario:</strong> {{ user.username }}</p>
+                    <a href="{% url 'logout' %}" class="btn btn-danger mt-3">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}
