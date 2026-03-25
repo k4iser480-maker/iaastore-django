@@ -14,4 +14,7 @@ class AccountAdmin(UserAdmin):
     list_filter = ()
     fieldsets = ()
 
+    def has_delete_permission(self, request, obj=None):
+        return True
+
 admin.site.register(Account, AccountAdmin)

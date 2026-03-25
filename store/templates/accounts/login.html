@@ -1,32 +1,56 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="section-content padding-y">
-<div class="container">
-<div class="row justify-content-center">
-<div class="col-md-4">
-    <div class="card">
-        <div class="card-body">
-            <h4 class="card-title mb-4">Iniciar Sesión</h4>
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-            <form method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label>Correo electrónico</label>
-                    <input type="email" name="email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Entrar</button>
-            </form>
-            <p class="mt-3 text-center">¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate</a></p>
-        </div>
+<section class="section-conten padding-y" style="min-height:84vh">
+
+<!-- ============================ COMPONENT LOGIN   ================================= -->
+	
+{% if request.GET.command == 'verification' %}
+    <div class="container mx-auto alert alert-info text-center" role="alert" style="max-width: 1024px; margin-top: 100px;">
+        Gracias por registrarte. Te hemos enviado un mensaje de verificacion a tu correo [{{ request.GET.email }}] para activar tu cuenta.
+    <br><br>
+    <a href="{% url 'resend_verification' %}?email={{ request.GET.email }}">Reenviar correo de verificacion</a> &nbsp;|&nbsp; Ya verificaste? <a href="{% url 'login' %}">Inicia Sesion</a>
     </div>
-</div>
-</div>
-</div>
+{% else %}
+
+<div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
+      <div class="card-body">
+      <h4 class="card-title mb-4">Iniciar Sesión</h4>
+        {% if messages %}
+          {% for message in messages %}
+            {% if 'unverified:' in message.message %}
+              <div class="alert alert-danger" role="alert">
+                Necesitas verificar tu cuenta para continuar.
+                <a href="{% url 'resend_verification' %}?email={{ message.message|slice:'11:' }}">Reenviar verificacion</a>
+              </div>
+            {% else %}
+              <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      <form action="{% url 'login' %}" method="POST" autocomplete="off">
+          {% csrf_token %}
+          <div class="form-group">
+			 <input type="email" class="form-control" placeholder="Correo Electrónico" name="email" autocomplete="off">
+          </div>
+          <div class="form-group">
+			<input type="password" class="form-control" placeholder="Contraseña" name="password" autocomplete="new-password">
+          </div>
+          
+          <div class="form-group">
+          	<a href="{% url 'forgotPassword' %}" class="float-right">¿Olvidaste tu contraseña?</a> 
+           
+          </div> <!-- form-group form-check .// -->
+          <div class="form-group">
+              <button type="submit" class="btn btn-primary btn-block"> Login  </button>
+          </div> <!-- form-group// -->    
+      </form>
+      </div> <!-- card-body.// -->
+    </div> <!-- card .// -->
+
+     <p class="text-center mt-4">¿No tienes una cuenta? <a href="{% url 'register' %}">Regístrate</a></p>
+     <br><br>
+<!-- ============================ COMPONENT LOGIN  END.// ================================= -->
+{% endif %}
+
 </section>
 {% endblock %}

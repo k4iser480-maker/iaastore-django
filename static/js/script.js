@@ -58,3 +58,21 @@ $(document).ready(function() {
 }); 
 // jquery end
 
+setTimeout(function() {
+    $('#message').fadeOut('slow');
+}, 4000);
+
+$(document).ready(function() {
+    $(document).on('click', '.toggle-password', function() {
+        var input = $($(this).data('target'));
+        if (input.is(':focus') || input.val() !== '') {
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                $(this).removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                $(this).removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        }
+    });
+});

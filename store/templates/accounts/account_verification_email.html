@@ -1,0 +1,9 @@
+{% autoescape off %}
+
+Hola {{ user.first_name }},
+Por favor, haz clic en el siguiente enlace para activar tu cuenta:
+"http://{{ domain }}{% url 'activate' uidb64=uid token=token %}"
+
+Si crees que no fuiste tú quien solicitó la activación, por favor ignora este correo electrónico.
+
+{% endautoescape %}
