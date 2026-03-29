@@ -19,9 +19,9 @@
 <table class="table table-borderless table-shopping-cart">
 <thead class="text-muted">
 <tr class="small text-uppercase">
-  <th scope="col">Product</th>
-  <th scope="col" width="120">Quantity</th>
-  <th scope="col" width="120">Price</th>
+  <th scope="col">Producto</th>
+  <th scope="col" width="120">Cantidad</th>
+  <th scope="col" width="120">Precio</th>
   <th scope="col" class="text-right" width="200"> </th>
 </tr>
 </thead>
@@ -60,7 +60,7 @@
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right"> 
-	<a href="{% url 'remove_cart_item' cart_item.product.id %}" onclick="return confirm('Estas seguro que quieres eliminar este elemento?')" class="btn btn-danger"> Remove</a>
+	<a href="{% url 'remove_cart_item' cart_item.product.id %}" onclick="return confirm('Estas seguro que quieres eliminar este elemento?')" class="btn btn-danger">Eliminar</a>
 	</td>
 </tr>
 {% endfor %}
@@ -75,23 +75,23 @@
 		<div class="card">
 		<div class="card-body">
 			<dl class="dlist-align">
-			  <dt>Total price:</dt>
+			  <dt>Precio total:</dt>
 			  <dd class="text-right">$ {{total}}</dd>
 			</dl>
 			<dl class="dlist-align">
-			  <dt>Tax:</dt>
+			  <dt>Impuesto:</dt>
 			  <dd class="text-right"> $ {{ tax }}</dd>
 			</dl>
 			<dl class="dlist-align">
-			  <dt>GrandTotal:</dt>
+			  <dt>Total:</dt>
 			  <dd class="text-right text-dark b"><strong>$ {{ grand_total }}</strong></dd>
 			</dl>
 			<hr>
 			<p class="text-center mb-3">
 				<img src="{% static 'images/misc/payments.png' %}" height="26">
 			</p>
-			<a href="./place-order.html" class="btn btn-primary btn-block"> Checkout </a>
-			<a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
+			<a href="{% url 'checkout' %}" class="btn btn-primary btn-block">Finalizar Compra</a>
+			<a href="{% url 'store' %}" class="btn btn-light btn-block">Seguir Comprando</a>
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->
 

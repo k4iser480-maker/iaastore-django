@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<section class="section-content padding-y bg">
+<div class="container">
+
+<!-- ============================ COMPONENT 1 ================================= -->
+
+<div class="row">
+	<aside class="col-lg-6">
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title mb-4">Dirección de Facturación</h4>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="col form-group">
+                <label>Nombre</label>
+                <input type="text" name="first_name" class="form-control" required>
+            </div>
+            <div class="col form-group">
+                <label>Apellido</label>
+                <input type="text" name="last_name" class="form-control" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col form-group">
+                <label>Correo Electrónico</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="col form-group">
+                <label>Teléfono</label>
+                <input type="text" name="phone" class="form-control" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col form-group">
+                <label>Dirección Linea 1</label>
+                <input type="text" name="address_line_1" class="form-control" required>
+            </div>
+            <div class="col form-group">
+                <label>Dirección Linea 2</label>
+                <input type="text" name="address_line_2" class="form-control">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col form-group">
+                <label>Ciudad</label>
+                <input type="text" name="city" class="form-control" required>
+            </div>
+            <div class="col form-group">
+                <label>Estado / Provincia</label>
+                <input type="text" name="state" class="form-control" required>
+            </div>
+            <div class="col form-group">
+                <label>País</label>
+                <input type="text" name="country" class="form-control" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Nota del Pedido</label>
+            <textarea name="order_note" class="form-control" placeholder="Notas sobre tu pedido, por ejemplo indicaciones especiales para la entrega." rows="2"></textarea>
+        </div>
+    
+  </div>
+
+</div> <!-- card.// -->
+
+	</aside> <!-- col.// -->
+	<aside class="col-lg-6">
+
+		<div class="card mb-3">
+		<div class="card-body">
+			<h4 class="card-title mb-3">Resumen del Pedido</h4>
+			<table class="table table-borderless">
+				<thead>
+					<tr>
+						<th>Producto</th>
+						<th>Precio</th>
+						<th>Cantidad</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for cart_item in cart_items %}
+					<tr>
+						<td>
+							<img src="{{ cart_item.product.images.url }}" width="40" class="mr-2">
+							{{ cart_item.product.product_name }}
+						</td>
+						<td>${{ cart_item.product.price }}</td>
+						<td>{{ cart_item.quantity }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			<hr>
+			<div class="d-flex justify-content-between">
+				<span>Subtotal:</span><span>${{ total }}</span>
+			</div>
+			<div class="d-flex justify-content-between">
+				<span>Impuesto (2%):</span><span>${{ tax }}</span>
+			</div>
+			<div class="d-flex justify-content-between font-weight-bold">
+				<span>Total:</span><span>${{ grand_total }}</span>
+			</div>
+		</div>
+		</div>
+
+		<div class="card">
+		<div class="card-body">
+			
+            <button type="submit" name="submit" class="btn btn-primary btn-block">Realizar Pedido</button>
+			<a href="{% url 'store' %}" class="btn btn-light btn-block">Seguir Comprando</a>
+        </form>
+        </div>
+		</div>
+
+	</aside>
+
+
+</div> <!-- row.// -->
+
+<!-- ============================ COMPONENT 1 END .// ================================= -->
+
+</div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+
+{% endblock %}

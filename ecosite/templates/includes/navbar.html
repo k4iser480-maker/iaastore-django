@@ -9,7 +9,7 @@
   <div class="collapse navbar-collapse" id="navbarTop4">
     <ul class="navbar-nav mr-auto">
     	<li class="nav-item dropdown">
-		 	<a href="#" class="nav-link">   English </a>
+		 	<a href="#" class="nav-link">Español</a>
 		    
 		</li>
 		<li class="nav-item dropdown">
@@ -17,8 +17,8 @@
 		</li>
     </ul>
     <ul class="navbar-nav">
-		<li><a href="#" class="nav-link"> <i class="fa fa-envelope"></i> Email </a></li>
-		<li><a href="#" class="nav-link"> <i class="fa fa-phone"></i> Call us </a></li>
+		<li><a href="#" class="nav-link"> <i class="fa fa-envelope"></i> Correo </a></li>
+		<li><a href="#" class="nav-link"> <i class="fa fa-phone"></i> Llámanos </a></li>
 	</ul> <!-- list-inline //  -->
   </div> <!-- navbar-collapse .// -->
 </div> <!-- container //  -->
@@ -39,20 +39,20 @@
 			</button>
 			<div class="dropdown-menu">
 				{% comment %} Use categories provided by the context processor `menu_links` {% endcomment %}
-				<a class="dropdown-item" href="{% url 'store' %}">All Products</a>
+				<a class="dropdown-item" href="{% url 'store' %}">Todos los productos</a>
 				{% for category in links %}
 					<a class="dropdown-item" href="{{ category.get_url }}">{{ category.category_name }}</a>
 				{% empty %}
-					<a class="dropdown-item" href="#">No categories</a>
+					<a class="dropdown-item" href="#">Sin categorias</a>
 				{% endfor %}
 			</div>
 		</div>  <!-- category-wrap.// -->
 	</div> <!-- col.// -->
-	<a href="{% url 'store' %}" class="btn btn-outline-primary">Store</a>
+	<a href="{% url 'store' %}" class="btn btn-outline-primary">Tienda</a>
 	<div class="col-lg  col-md-6 col-sm-12 col">
 		<form action="{% url 'search' %}" class="search" method="GET">
 			<div class="input-group w-100">
-			    <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
+			    <input type="text" class="form-control" style="width:60%;" placeholder="Buscar" name="keyword" required>
 			    
 			    <div class="input-group-append">
 			      <button class="btn btn-primary" type="submit">

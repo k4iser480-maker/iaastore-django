@@ -11,6 +11,10 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 
+from carts.views import _cart_id
+from carts.models import Cart, CartItem
+import requests
+
 @never_cache
 def register(request):
     if request.method == 'POST':
@@ -60,11 +64,38 @@ def login(request):
         user = auth.authenticate(email=email, password=password)
         
         if user is not None:
+            try:
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                is_cart_items_exists = CartItem.objects.filter(cart=cart)
+                if is_cart_items_exists.exists():
+                    cart_items = CartItem.objects.filter(cart=cart)
+                    for item in cart_items:
+                        existing = CartItem.objects.filter(user=user, product=item.product).first()
+                        if existing:
+                            existing.quantity += item.quantity
+                            existing.save()
+                            item.delete()
+                        else:
+                            item.user = user
+                            item.save()
+            except:
+                pass
             auth.login(request, user)
             messages.success(request, 'Has iniciado sesion.')
-            return redirect('dashboard')
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query
+                print('query ->', query)
+                print('----')
+                #next=/cart/checkout/
+                params = dict(x.split('=') for x in query.split('&'))
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)
+            except:
+                return redirect('dashboard')
         else:
-            messages.error(request, 'Contrasena incorrecta. Por favor intentalo de nuevo.')
+            messages.error(request, 'Contraseña incorrecta. Por favor intentalo de nuevo.')
             return redirect('login')
 
     return render(request, 'accounts/login.html')
