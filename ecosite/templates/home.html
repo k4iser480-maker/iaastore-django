@@ -1,56 +1,675 @@
-
-
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_tags %}
 
 {% block content %}
 
 
-<!-- ========================= SECTION MAIN ========================= -->
-<section class="section-intro padding-y-sm">
-<div class="container">
+<!-- ========================= HERO CAROUSEL ========================= -->
+<link href="{% static 'lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet">
+<style>
+    /* --- Carousel Container --- */
+    #heroCarousel {
+        margin-bottom: 30px;
+    }
 
-<div class="intro-banner-wrap">
-	<img src="{% static 'images/banners/cover.jpg' %}" class="img-fluid rounded">
+    #heroCarousel .carousel-item {
+        height: 480px;
+        position: relative;
+    }
+
+    /* --- Placeholder backgrounds (reemplazar con imágenes reales) --- */
+    #heroCarousel .carousel-item .slide-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    #heroCarousel .carousel-item:nth-child(1) .slide-bg {
+        background: linear-gradient(135deg, #1A3B57 0%, #2a5a7e 50%, #1e4d6e 100%);
+    }
+
+    #heroCarousel .carousel-item:nth-child(2) .slide-bg {
+        background: linear-gradient(135deg, #0d2b3e 0%, #1A3B57 50%, #39B54A 100%);
+    }
+
+    #heroCarousel .carousel-item:nth-child(3) .slide-bg {
+        background: linear-gradient(135deg, #2d9140 0%, #1A3B57 60%, #142d42 100%);
+    }
+
+    /* --- Cuando pongas imágenes reales usa esto --- */
+    #heroCarousel .carousel-item .slide-bg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* --- Overlay oscuro semitransparente --- */
+    #heroCarousel .carousel-item .slide-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1;
+    }
+
+    /* --- Contenido centrado --- */
+    #heroCarousel .carousel-caption {
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+    }
+
+    #heroCarousel .carousel-caption .slide-content {
+        text-align: center;
+        padding: 20px;
+        max-width: 750px;
+    }
+
+    #heroCarousel .carousel-caption h1 {
+        color: #FFFFFF !important;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 3.2rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        margin-bottom: 16px;
+        line-height: 1.15;
+    }
+
+    #heroCarousel .carousel-caption p {
+        color: rgba(255, 255, 255, 0.9);
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto 24px auto;
+        line-height: 1.6;
+    }
+
+    #heroCarousel .slide-btn {
+        color: #FFFFFF;
+        border: 2px solid #FFFFFF;
+        padding: 12px 34px;
+        font-weight: 600;
+        font-family: 'Montserrat', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border-radius: 0;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    #heroCarousel .slide-btn:hover {
+        background-color: #39B54A;
+        border-color: #39B54A;
+        color: #FFFFFF;
+        text-decoration: none;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(57, 181, 74, 0.45);
+    }
+
+    /* --- Indicadores circulares --- */
+    #heroCarousel .carousel-indicators li {
+        width: 14px !important;
+        height: 14px !important;
+        margin: 0 4px !important;
+        background: transparent !important;
+        border: 2px solid #FFFFFF !important;
+        border-radius: 50% !important;
+        opacity: 0.6;
+        transition: all 0.4s ease;
+    }
+
+    #heroCarousel .carousel-indicators .active {
+        width: 28px !important;
+        background: #FFFFFF !important;
+        border-radius: 14px !important;
+        opacity: 1;
+    }
+
+    /* --- Flechas del carousel --- */
+    #heroCarousel .carousel-control-prev,
+    #heroCarousel .carousel-control-next {
+        width: 50px;
+        opacity: 0.7;
+        z-index: 3;
+    }
+
+    #heroCarousel .carousel-control-prev:hover,
+    #heroCarousel .carousel-control-next:hover {
+        opacity: 1;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 991px) {
+        #heroCarousel .carousel-item {
+            height: 360px;
+        }
+
+        #heroCarousel .carousel-caption h1 {
+            font-size: 2.2rem;
+        }
+
+        #heroCarousel .carousel-caption p {
+            font-size: 0.95rem;
+        }
+    }
+
+    @media (max-width: 575px) {
+        #heroCarousel .carousel-item {
+            height: 260px;
+        }
+
+        #heroCarousel .carousel-caption h1 {
+            font-size: 1.5rem;
+        }
+
+        #heroCarousel .carousel-caption p {
+            display: none;
+        }
+
+        #heroCarousel .slide-btn {
+            padding: 8px 20px;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* --- Category Features --- */
+    .category-feature {
+        padding: 30px;
+        background-color: #f8f9fa;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        text-decoration: none !important;
+        display: flex;
+        align-items: center;
+    }
+
+    .category-feature:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(26, 59, 87, 0.15);
+        border-color: #39B54A;
+    }
+
+    .category-feature i {
+        color: #39B54A !important;
+        font-size: 2.5rem;
+        margin-right: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .category-feature h5 {
+        color: #1A3B57;
+        margin: 0;
+        font-weight: 600;
+        font-family: 'Montserrat', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .category-feature:hover h5 {
+        color: #39B54A;
+    }
+
+    /* --- Product Item Style --- */
+    .product-item {
+        transition: .5s;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        background-color: #ffffff;
+    }
+
+    .product-item:hover {
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-img {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-img img {
+        transition: .5s;
+        height: 250px;
+        object-fit: contain;
+    }
+
+    .product-item:hover .product-img img {
+        transform: scale(1.15);
+    }
+
+    .product-action {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.7);
+        opacity: 0;
+        transition: .5s;
+    }
+
+    .product-item:hover .product-action {
+        opacity: 1;
+    }
+
+    .product-action a.btn {
+        margin: 0 3px;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+        background-color: #1A3B57;
+        color: #ffffff;
+        border: none;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-action a.btn:hover {
+        background-color: #39B54A;
+    }
+
+    .product-item:hover .product-action a.btn {
+        transform: translateY(0);
+    }
+
+    .product-item:hover .product-action a.btn:nth-child(1) {
+        transition-delay: 0.0s;
+    }
+
+    .product-item:hover .product-action a.btn:nth-child(2) {
+        transition-delay: 0.05s;
+    }
+
+    .product-item:hover .product-action a.btn:nth-child(3) {
+        transition-delay: 0.1s;
+    }
+</style>
+
+<div id="heroCarousel" class="carousel slide carousel-fade" data-ride="carousel" data-interval="5000">
+
+    <!-- Indicadores -->
+    <ol class="carousel-indicators">
+        <li data-target="#heroCarousel" data-slide-to="0" class="active"></li>
+        <li data-target="#heroCarousel" data-slide-to="1"></li>
+        <li data-target="#heroCarousel" data-slide-to="2"></li>
+    </ol>
+
+    <div class="carousel-inner">
+
+        <!-- ===== SLIDE 1 ===== -->
+        <div class="carousel-item active">
+            <div class="slide-bg">
+                <img src="{% static 'images/banners/slide1.png' %}" alt="Materiales de Construcción">
+            </div>
+            <div class="slide-overlay"></div>
+            <div class="carousel-caption">
+                <div class="slide-content">
+                    <h1 class="animate__animated animate__fadeInDown">Materiales de Construcción</h1>
+                    <p class="animate__animated animate__bounceIn">Encuentra los mejores materiales para tus proyectos
+                        con la calidad que te mereces</p>
+                    <a class="slide-btn animate__animated animate__fadeInUp" href="{% url 'store' %}">Ver Productos</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SLIDE 2 ===== -->
+        <div class="carousel-item">
+            <div class="slide-bg">
+                <img src="{% static 'images/banners/slide2.png' %}" alt="Cashéalo Aquí">
+            </div>
+            <!-- Sin slide-overlay para que resalte el fondo amarillo -->
+            <div class="carousel-caption" style="justify-content: flex-start; padding-left: 10% !important;">
+                <div class="slide-content" style="text-align: left; max-width: 500px;">
+                    <h1 class="animate__animated animate__fadeInDown" style="color: #000000 !important; font-weight: 800; text-shadow: none;">¡Cashéalo aquí!</h1>
+                    <img src="{% static 'images/cashea1.png' %}" alt="Cashea Logo" class="animate__animated animate__fadeInDown mb-3" style="max-height: 60px;">
+                    <p class="animate__animated animate__bounceIn" style="color: #222222; font-weight: 600; text-shadow: none;">Conoce todas las facilidades de pago que ofrecemos para ti.</p>
+                    <a class="slide-btn animate__animated animate__fadeInUp" href="{% url 'help' %}#payment" style="border-color: #000000; color: #000000; font-weight: 700;">Más Información</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SLIDE 3 ===== -->
+        <div class="carousel-item">
+            <div class="slide-bg">
+                <img src="{% static 'images/banners/slide3.png' %}" alt="Delivery Gratis">
+            </div>
+            <div class="slide-overlay"></div>
+            <div class="carousel-caption" style="justify-content: flex-start; padding-left: 10% !important;">
+                <div class="slide-content" style="text-align: left; max-width: 500px;">
+                    <h1 class="animate__animated animate__fadeInDown">Delivery gratis.</h1>
+                    <p class="animate__animated animate__bounceIn">¿Quieres más información?</p>
+                    <a class="slide-btn animate__animated animate__fadeInUp" href="{% url 'help' %}#shipping">Presiona Aquí</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Flechas de navegación -->
+    <a class="carousel-control-prev" href="#heroCarousel" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </a>
+    <a class="carousel-control-next" href="#heroCarousel" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </a>
+
 </div>
+<!-- ========================= CAROUSEL END ========================= -->
 
-</div> <!-- container //  -->
+<!-- ========================= CATEGORIES FEATURES ========================= -->
+<section class="container pt-4 pb-2">
+    <div class="row">
+        {% for category in links %}
+        <div class="col-lg-4 col-md-6 col-sm-12 pb-3">
+            <a href="{{ category.get_url }}" class="category-feature">
+                {% if category.category_name == 'Acero' %}
+                <i class="fas fa-cubes"></i>
+                {% elif category.category_name == 'Aislantes' %}
+                <i class="fas fa-shield-alt"></i>
+                {% elif category.category_name == 'Refractarios' %}
+                <i class="fas fa-fire-alt"></i>
+                {% else %}
+                <i class="fas fa-box"></i>
+                {% endif %}
+                <h5>{{ category.category_name }}</h5>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
 </section>
-<!-- ========================= SECTION MAIN END// ========================= -->
+<!-- ========================= CATEGORIES FEATURES END ========================= -->
 
-<!-- ========================= SECTION  ========================= -->
-<section class="section-name padding-y-sm">
-<div class="container">
+<!-- ========================= SECTION PRODUCTOS ========================= -->
+<section class="section-name padding-y-sm" style="background-color: #f5f5f5;">
+    <div class="container pt-4 pb-3">
 
-<header class="section-heading">
-	<a href="{% url 'store' %}" class="btn btn-outline-primary float-right">Ver todo</a>
-	<h3 class="section-title">Productos populares</h3>
-</header><!-- sect-heading -->
+        <header class="section-heading mb-4">
+            <a href="{% url 'store' %}" class="btn btn-outline-primary float-right"
+                style="border-color: #1A3B57; color: #1A3B57;">Ver todo</a>
+            <h3 class="section-title" style="color: #1A3B57; font-weight: 700;">Productos populares</h3>
+        </header><!-- sect-heading -->
 
-	
-<div class="row">
-	{% for product in products %}
-	    <div class="col-md-3">
-	        <div class="card card-product-grid">
-	            <a href="{{ product.get_url }}" class="img-wrap">
-	                <img src="{{ product.images.url }}">
-	            </a>
-	            <figcaption class="info-wrap">
-	                <a href="{{ product.get_url }}" class="title">{{ product.product_name }}</a>
-	                <div class="price mt-1">$ {{ product.price }}</div> <!-- price-wrap.// -->
-	            </figcaption>
-	        </div>
-	    </div> <!-- col.// -->
-	{% endfor %}
-</div> <!-- row.// -->
+        <div class="owl-carousel related-carousel">
+            {% for product in popular_products %}
+            <div class="pb-1">
+                <div class="product-item mb-4">
+                    <div class="product-img">
+                        <img class="img-fluid w-100" src="{{ product.images.url }}" alt="{{ product.product_name }}">
+                        <div class="position-absolute d-flex flex-column"
+                            style="top: 10px; left: 10px; z-index: 10; gap: 5px;">
+                            {% if product.stock <= 0 %} <span class="badge badge-danger px-3 py-2"
+                                style="font-size: 0.85rem; border-radius: 4px; background-color: #dc3545; color: white; display: block; margin-bottom: 5px;">
+                                Agotado</span>
+                                {% endif %}
+                                {% if product.is_on_sale %}
+                                <span class="badge badge-warning px-3 py-2"
+                                    style="font-size: 0.85rem; border-radius: 4px; background-color: #ffc107; color: #333; display: block;">Oferta</span>
+                                {% endif %}
+                        </div>
+                        <div class="product-action">
+                            {% if product.stock > 0 %}
+                            <a class="btn btn-square" href="{% url 'add_cart' product.id %}"
+                                title="Agregar al carrito"><i class="fa fa-shopping-cart"></i></a>
+                            {% endif %}
+                            <a class="btn btn-square wishlist-btn {% if product.id in wishlist_ids %}wishlisted{% endif %}"
+                                href="#" data-product-id="{{ product.id }}" title="Lista de deseos"><i
+                                    class="{% if product.id in wishlist_ids %}fas{% else %}far{% endif %} fa-heart"></i></a>
+                            <a class="btn btn-square" href="{{ product.get_url }}" title="Ver detalles"><i
+                                    class="fa fa-search"></i></a>
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <a class="h6 text-decoration-none d-block px-2"
+                            style="color: #1A3B57; font-family: 'Montserrat', sans-serif; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; min-height: 40px;"
+                            href="{{ product.get_url }}">{{ product.product_name }}</a>
+                        <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5 style="color: #39B54A; margin-bottom: 0;">{{ product.price|format_price:request|safe }}</h5>
+                            {% if product.is_on_sale and product.old_price %}
+                            <h6 class="text-muted ml-2" style="margin-bottom: 0;"><del>{{ product.old_price|format_price:request|safe }}</del></h6>
+                            {% endif %}
+                        </div>
+                        {% if product.countReview > 0 %}
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            <small
+                                class="fa fa-star{% if product.averageReview < 0.5 %}-o{% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 1.5 %}-o{% elif product.averageReview >= 1.5 and product.averageReview < 2 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 2.5 %}-o{% elif product.averageReview >= 2.5 and product.averageReview < 3 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 3.5 %}-o{% elif product.averageReview >= 3.5 and product.averageReview < 4 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 4.5 %}-o{% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small class="text-muted">({{ product.countReview }})</small>
+                        </div>
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            <small class="text-muted">Sin reseñas aún</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
 
-</div><!-- container // -->
+    </div><!-- container // -->
 </section>
 <!-- ========================= SECTION  END// ========================= -->
 
+<!-- ========================= SECTION PRODUCTOS RECIENTES ========================= -->
+<section class="section-name padding-y-sm" style="background-color: #f5f5f5; border-top: 1px solid #e9ecef;">
+    <div class="container pt-4 pb-3">
 
+        <header class="section-heading mb-4">
+            <a href="{% url 'store' %}" class="btn btn-outline-primary float-right"
+                style="border-color: #1A3B57; color: #1A3B57;">Ver todo</a>
+            <h3 class="section-title" style="color: #1A3B57; font-weight: 700;">Productos recientes</h3>
+        </header><!-- sect-heading -->
 
-</body>
-</html>
+        <div class="owl-carousel related-carousel">
+            {% for product in recent_products %}
+            <div class="pb-1">
+                <div class="product-item mb-4">
+                    <div class="product-img">
+                        <img class="img-fluid w-100" src="{{ product.images.url }}" alt="{{ product.product_name }}">
+                        <div class="position-absolute d-flex flex-column"
+                            style="top: 10px; left: 10px; z-index: 10; gap: 5px;">
+                            {% if product.stock <= 0 %} <span class="badge badge-danger px-3 py-2"
+                                style="font-size: 0.85rem; border-radius: 4px; background-color: #dc3545; color: white; display: block; margin-bottom: 5px;">
+                                Agotado</span>
+                                {% endif %}
+                                {% if product.is_on_sale %}
+                                <span class="badge badge-warning px-3 py-2"
+                                    style="font-size: 0.85rem; border-radius: 4px; background-color: #ffc107; color: #333; display: block;">Oferta</span>
+                                {% endif %}
+                        </div>
+                        <div class="product-action">
+                            {% if product.stock > 0 %}
+                            <a class="btn btn-square" href="{% url 'add_cart' product.id %}"
+                                title="Agregar al carrito"><i class="fa fa-shopping-cart"></i></a>
+                            {% endif %}
+                            <a class="btn btn-square" href="{{ product.get_url }}" title="Favoritos"><i
+                                    class="far fa-heart"></i></a>
+                            <a class="btn btn-square" href="{{ product.get_url }}" title="Ver detalles"><i
+                                    class="fa fa-search"></i></a>
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <a class="h6 text-decoration-none d-block px-2"
+                            style="color: #1A3B57; font-family: 'Montserrat', sans-serif; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; min-height: 40px;"
+                            href="{{ product.get_url }}">{{ product.product_name }}</a>
+                        <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5 style="color: #39B54A; margin-bottom: 0;">{{ product.price|format_price:request|safe }}</h5>
+                            {% if product.is_on_sale and product.old_price %}
+                            <h6 class="text-muted ml-2" style="margin-bottom: 0;"><del>{{ product.old_price|format_price:request|safe }}</del></h6>
+                            {% endif %}
+                        </div>
+                        {% if product.countReview > 0 %}
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            <small
+                                class="fa fa-star{% if product.averageReview < 0.5 %}-o{% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 1.5 %}-o{% elif product.averageReview >= 1.5 and product.averageReview < 2 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 2.5 %}-o{% elif product.averageReview >= 2.5 and product.averageReview < 3 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 3.5 %}-o{% elif product.averageReview >= 3.5 and product.averageReview < 4 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 4.5 %}-o{% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small class="text-muted">({{ product.countReview }})</small>
+                        </div>
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            <small class="text-muted">Sin reseñas aún</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div><!-- container // -->
+</section>
+<!-- ========================= SECTION END// ========================= -->
+
+<!-- ========================= SECTION PRODUCTOS EN OFERTA ========================= -->
+<section class="section-name padding-y-sm" style="background-color: #f5f5f5; border-top: 1px solid #e9ecef;">
+    <div class="container pt-4 pb-3">
+
+        <header class="section-heading mb-4">
+            <a href="{% url 'store' %}" class="btn btn-outline-primary float-right"
+                style="border-color: #1A3B57; color: #1A3B57;">Ver todo</a>
+            <h3 class="section-title" style="color: #1A3B57; font-weight: 700;">Productos en oferta</h3>
+        </header><!-- sect-heading -->
+
+        <div class="owl-carousel related-carousel">
+            {% for product in sale_products %}
+            <div class="pb-1">
+                <div class="product-item mb-4">
+                    <div class="product-img">
+                        <img class="img-fluid w-100" src="{{ product.images.url }}" alt="{{ product.product_name }}">
+                        <div class="position-absolute d-flex flex-column"
+                            style="top: 10px; left: 10px; z-index: 10; gap: 5px;">
+                            {% if product.stock <= 0 %} <span class="badge badge-danger px-3 py-2"
+                                style="font-size: 0.85rem; border-radius: 4px; background-color: #dc3545; color: white; display: block; margin-bottom: 5px;">
+                                Agotado</span>
+                                {% endif %}
+                                {% if product.is_on_sale %}
+                                <span class="badge badge-warning px-3 py-2"
+                                    style="font-size: 0.85rem; border-radius: 4px; background-color: #ffc107; color: #333; display: block;">Oferta</span>
+                                {% endif %}
+                        </div>
+                        <div class="product-action">
+                            {% if product.stock > 0 %}
+                            <a class="btn btn-square" href="{% url 'add_cart' product.id %}"
+                                title="Agregar al carrito"><i class="fa fa-shopping-cart"></i></a>
+                            {% endif %}
+                            <a class="btn btn-square" href="{{ product.get_url }}" title="Favoritos"><i
+                                    class="far fa-heart"></i></a>
+                            <a class="btn btn-square" href="{{ product.get_url }}" title="Ver detalles"><i
+                                    class="fa fa-search"></i></a>
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <a class="h6 text-decoration-none d-block px-2"
+                            style="color: #1A3B57; font-family: 'Montserrat', sans-serif; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; min-height: 40px;"
+                            href="{{ product.get_url }}">{{ product.product_name }}</a>
+                        <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5 style="color: #39B54A; margin-bottom: 0;">{{ product.price|format_price:request|safe }}</h5>
+                            {% if product.is_on_sale and product.old_price %}
+                            <h6 class="text-muted ml-2" style="margin-bottom: 0;"><del>{{ product.old_price|format_price:request|safe }}</del></h6>
+                            {% endif %}
+                        </div>
+                        {% if product.countReview > 0 %}
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            <small
+                                class="fa fa-star{% if product.averageReview < 0.5 %}-o{% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 1.5 %}-o{% elif product.averageReview >= 1.5 and product.averageReview < 2 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 2.5 %}-o{% elif product.averageReview >= 2.5 and product.averageReview < 3 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 3.5 %}-o{% elif product.averageReview >= 3.5 and product.averageReview < 4 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small
+                                class="fa fa-star{% if product.averageReview < 4.5 %}-o{% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o{% endif %} mr-1"
+                                style="color: #FFD333;"></small>
+                            <small class="text-muted">({{ product.countReview }})</small>
+                        </div>
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            <small class="text-muted">Sin reseñas aún</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div><!-- container // -->
+</section>
+<!-- ========================= SECTION END// ========================= -->
+
+<script src="{% static 'lib/owlcarousel/owl.carousel.min.js' %}"></script>
+<script>
+    $(document).ready(function () {
+        // Related carousel for products
+        $('.related-carousel').owlCarousel({
+            loop: true,
+            margin: 29,
+            nav: false,
+            autoplay: true,
+            smartSpeed: 1000,
+            responsive: {
+                0: {
+                    items: 1
+                },
+                576: {
+                    items: 2
+                },
+                768: {
+                    items: 3
+                },
+                992: {
+                    items: 4
+                }
+            }
+        });
+    });
+</script>
 
 {% endblock %}

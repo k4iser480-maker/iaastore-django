@@ -1,0 +1,93 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}
+<span class="sep">›</span> <a href="{% url 'admin_roles' %}">Roles</a> <span class="sep">›</span> {{ action }}
+{% endblock %}
+
+{% block page_title %}{{ action }} Rol{% endblock %}
+{% block page_desc %}Configura el nombre, descripción y los permisos granulares para este rol.{% endblock %}
+
+{% block content %}
+<style>
+    .matrix-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .matrix-table th, .matrix-table td { padding: 12px 16px; border-bottom: 1px solid var(--ap-border); text-align: center; }
+    .matrix-table th { background: #f9fafb; font-size: 13px; font-weight: 600; color: var(--ap-text-secondary); text-transform: uppercase; }
+    .matrix-table td:first-child, .matrix-table th:first-child { text-align: left; }
+    .matrix-module { font-weight: 600; color: var(--ap-text); font-size: 14px; }
+    
+    /* Custom Checkbox as Switch */
+    .ap-switch {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 20px;
+    }
+    .ap-switch input { opacity: 0; width: 0; height: 0; }
+    .ap-slider {
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #ccc; transition: .4s; border-radius: 34px;
+    }
+    .ap-slider:before {
+        position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px;
+        background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .ap-slider { background-color: var(--ap-accent); }
+    input:checked + .ap-slider:before { transform: translateX(14px); }
+</style>
+
+<div class="ap-card">
+    <div class="ap-card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="ap-grid-2" style="margin-bottom: 24px;">
+                <div class="ap-form-group">
+                    <label class="ap-label">Nombre del Rol *</label>
+                    <input type="text" class="ap-input" name="name" value="{{ role.name|default:'' }}" required>
+                </div>
+                <div class="ap-form-group">
+                    <label class="ap-label">Descripción</label>
+                    <input type="text" class="ap-input" name="description" value="{{ role.description|default:'' }}">
+                </div>
+            </div>
+
+            <div class="ap-settings-title" style="margin-bottom: 15px;"><i class="fas fa-lock mr-2"></i> Matriz de Permisos</div>
+            <div style="border: 1px solid var(--ap-border); border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            <th>Módulo</th>
+                            <th>Permiso / Acción</th>
+                            <th>Habilitar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mod_name, perms in modules.items %}
+                            {% for p in perms %}
+                            <tr>
+                                {% if forloop.first %}
+                                <td rowspan="{{ perms|length }}" class="matrix-module" style="background: #fafafa; border-right: 1px solid var(--ap-border);">
+                                    {{ mod_name }}
+                                </td>
+                                {% endif %}
+                                <td style="text-align: left; font-size: 13px;">{{ p.name }}</td>
+                                <td>
+                                    <label class="ap-switch">
+                                        <input type="checkbox" name="permissions" value="{{ p.id }}" {% if p.id in role_perms %}checked{% endif %}>
+                                        <span class="ap-slider"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <a href="{% url 'admin_roles' %}" class="ap-btn">Cancelar</a>
+                <button type="submit" class="ap-btn ap-btn-primary"><i class="fas fa-save"></i> Guardar Rol</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

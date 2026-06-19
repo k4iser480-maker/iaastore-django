@@ -1,0 +1,127 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}<span class="sep">›</span> Transportistas{% endblock %}
+{% block page_title %}Transportistas{% endblock %}
+{% block page_desc %}Gestiona los transportistas encargados del delivery.{% endblock %}
+
+{% block content %}
+<div class="ap-toolbar" style="flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px;">
+    <!-- Búsqueda -->
+    <div class="ap-search-wrap" style="flex: 1; min-width: 250px;">
+        <i class="fas fa-search"></i>
+        <input type="text" class="ap-input" id="transSearch" placeholder="Buscar por nombre, email o vehículo...">
+    </div>
+
+    <!-- Filtro de Estado -->
+    <select class="ap-select" id="transStatusFilter">
+        <option value="">Todos los estados</option>
+        <option value="disponible">Disponible</option>
+        <option value="en_ruta">En Ruta</option>
+    </select>
+
+    <div style="display: flex; gap: 8px; margin-left: auto;">
+        <button class="ap-btn" onclick="exportTransPDF()" style="background: #ef4444; color: #fff; border: none;" title="Exportar a PDF">
+            <i class="fas fa-file-pdf"></i> Exportar
+        </button>
+        <a href="{% url 'admin_create_transportista' %}" class="ap-btn ap-btn-primary">
+            <i class="fas fa-plus"></i> Añadir
+        </a>
+    </div>
+</div>
+
+{% include 'includes/alerts.html' %}
+
+<div class="ap-card">
+    <div style="overflow-x:auto;">
+        <table class="ap-table" id="transportistasTable">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Teléfono</th>
+                    <th>Vehículo</th>
+                    <th>Notificaciones</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in transportistas %}
+                <tr data-name="{{ trans.user.first_name|lower }} {{ trans.user.last_name|lower }}" data-email="{{ trans.user.email|lower }}" data-vehiculo="{{ trans.vehiculo|lower|default:'' }}" data-status="{% if trans.disponible %}disponible{% else %}en_ruta{% endif %}">
+                    <td>
+                        <div class="ap-user-cell">
+                            <div class="ap-avatar {% cycle 'blue' 'green' 'purple' 'amber' 'red' %}">{{ trans.user.first_name|first }}{{ trans.user.last_name|first }}</div>
+                            <div>
+                                <div class="ap-user-name">{{ trans.user.first_name }} {{ trans.user.last_name }}</div>
+                                <div class="ap-user-email">{{ trans.user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ trans.telefono }}</td>
+                    <td>{{ trans.vehiculo|default:"—" }}</td>
+                    <td>{{ trans.email_notificaciones|default:trans.user.email }}</td>
+                    <td>
+                        {% if trans.disponible %}
+                        <span class="ap-badge ap-badge-green"><span class="dot"></span> Disponible</span>
+                        {% else %}
+                        <span class="ap-badge ap-badge-amber"><span class="dot"></span> En Ruta</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center; color:var(--ap-text-muted); padding:40px;">No hay transportistas registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ===== Filtro en tiempo real =====
+const transSearch = document.getElementById('transSearch');
+const transStatusFilter = document.getElementById('transStatusFilter');
+const transRows = document.querySelectorAll('#transportistasTable tbody tr');
+
+function filterTrans() {
+    const q = transSearch.value.toLowerCase();
+    const s = transStatusFilter.value;
+
+    transRows.forEach(row => {
+        if (row.children.length === 1) return; // skip empty row
+
+        const name = row.dataset.name || '';
+        const email = row.dataset.email || '';
+        const vehiculo = row.dataset.vehiculo || '';
+        const status = row.dataset.status || '';
+
+        const matchSearch = !q || name.includes(q) || email.includes(q) || vehiculo.includes(q);
+        const matchStatus = !s || status === s;
+
+        row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+    });
+}
+
+if (transSearch) transSearch.addEventListener('input', filterTrans);
+if (transStatusFilter) transStatusFilter.addEventListener('change', filterTrans);
+
+// ===== Exportar a PDF =====
+function exportTransPDF() {
+    const d = new Date().toLocaleDateString('es-ES');
+    let filters = [];
+    if (transSearch && transSearch.value) filters.push(`Búsqueda: "${transSearch.value}"`);
+    if (transStatusFilter && transStatusFilter.value) filters.push(`Estado: ${transStatusFilter.options[transStatusFilter.selectedIndex].text}`);
+
+    const meta = {
+        user: "{{ user.first_name|default:user.username }} {{ user.last_name }}",
+        date: d,
+        filters: filters.length > 0 ? filters.join(" | ") : "Ninguno"
+    };
+
+    if (typeof exportTableToPDF === 'function') {
+        exportTableToPDF('transportistasTable', 'Reporte de Transportistas', 'transportistas.pdf', meta, []);
+    } else {
+        alert('La función de exportación no está disponible.');
+    }
+}
+</script>
+{% endblock %}

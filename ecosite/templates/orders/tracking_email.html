@@ -1,0 +1,14 @@
+{% autoescape off %}
+Hola {{ order.full_name }},
+
+¡Tenemos noticias sobre tu pedido #{{ order.order_number }}!
+
+Estado actual: {{ status_display }}
+
+Puedes ver el progreso en tiempo real de tu entrega en el siguiente enlace:
+http://{{ domain }}/accounts/order/{{ order.order_number }}/
+
+Si tienes alguna pregunta, no dudes en contactarnos.
+
+Gracias por confiar en IAA Store.
+{% endautoescape %}

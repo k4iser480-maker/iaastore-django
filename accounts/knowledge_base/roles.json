@@ -1,0 +1,19 @@
+{
+  "module": "roles",
+  "title": "Roles y Permisos",
+  "permission": "view_roles",
+  "questions": [
+    "como crear rol",
+    "permisos",
+    "asignar rol",
+    "rbac"
+  ],
+  "answer": "El sistema utiliza Control de Acceso Basado en Roles (RBAC).\n\nPara configurar los accesos:\n1. Ve a **Roles y Permisos** en el menú.\n2. Crea un rol (ej. 'Manejador de Inventario').\n3. Selecciona los permisos específicos que este rol tendrá (ej. 'Ver Productos').\n4. Asigna este rol a los usuarios *staff* necesarios.",
+  "keywords": [
+    "permisos",
+    "rbac",
+    "asignar",
+    "como",
+    "crear"
+  ]
+}

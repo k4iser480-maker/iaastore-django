@@ -23,7 +23,17 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
+    path('set-currency/', views.set_currency, name='set_currency'),
+    path('about/', views.about, name='about'),
+    path('help/', views.help_page, name='help'),
+    path('api/create-ticket/', views.create_ticket, name='create_ticket'),
+    path('contact/', views.contact_form, name='contact_form'),
     path('store/', include('store.urls')),
     path('cart/', include('carts.urls')),
     path('accounts/', include('accounts.urls')),
+
+    path('orders/', include('orders.urls')),
+    path('transportista/', include('orders.urls_transportista', namespace='transportista')),
+
+    path('chat/', views.chat_message, name='chat_message'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

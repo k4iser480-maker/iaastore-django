@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 16px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    @media (min-width: 992px) {
+        .detail-grid {
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+            gap: 24px;
+        }
+        .detail-full {
+            grid-column: 1 / -1;
+        }
+    }
+    .detail-back {
+        color: #6366f1;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 16px;
+    }
+    .detail-back:hover { text-decoration: underline; }
+
+    .detail-section {
+        background: #fff;
+        border: 1px solid #e3e8ee;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 16px;
+    }
+    .detail-section-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #8792a2;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    /* Order header */
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .order-header h2 {
+        font-size: 1.2rem;
+        color: #1a1f36;
+        margin: 0;
+    }
+    .order-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge-assigned { background: #ede9fe; color: #7c3aed; }
+    .badge-picked { background: #dbeafe; color: #2563eb; }
+    .badge-transit { background: #fef3c7; color: #d97706; }
+    .badge-nearby { background: #d1fae5; color: #059669; }
+    .badge-delivered { background: #d1fae5; color: #059669; }
+
+    /* Client info */
+    .client-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 12px;
+        font-size: 0.9rem;
+        color: #525f7f;
+    }
+    .client-grid .icon {
+        color: #8792a2;
+        width: 16px;
+        text-align: center;
+    }
+
+    /* Progress bar */
+    .progress-track {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        padding: 0 10px;
+        margin-bottom: 8px;
+    }
+    .progress-track::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 40px;
+        right: 40px;
+        height: 4px;
+        background: #e3e8ee;
+        z-index: 0;
+    }
+    .progress-fill {
+        position: absolute;
+        top: 20px;
+        left: 40px;
+        height: 4px;
+        background: #39B54A;
+        z-index: 0;
+        transition: width 0.4s ease;
+    }
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1;
+        width: 50px;
+    }
+    .progress-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #e3e8ee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: #fff;
+        margin-bottom: 6px;
+        transition: all 0.3s;
+    }
+    .progress-dot.completed {
+        background: #10b981;
+    }
+    .progress-dot.current {
+        background: #f59e0b;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+        animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+        0%, 100% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2); }
+        50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.1); }
+    }
+    .progress-label {
+        font-size: 0.6rem;
+        color: #8792a2;
+        text-align: center;
+        line-height: 1.2;
+    }
+    .progress-label.active { color: #1a1f36; font-weight: 600; }
+
+    /* Timeline */
+    .timeline {
+        position: relative;
+        padding-left: 24px;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e3e8ee;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 16px;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-dot {
+        position: absolute;
+        left: -20px;
+        top: 2px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #10b981;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #10b981;
+    }
+    .timeline-status {
+        font-weight: 600;
+        color: #1a1f36;
+        font-size: 0.9rem;
+    }
+    .timeline-time {
+        font-size: 0.78rem;
+        color: #8792a2;
+    }
+    .timeline-note {
+        font-size: 0.82rem;
+        color: #525f7f;
+        margin-top: 2px;
+        font-style: italic;
+    }
+
+    /* Map */
+    #delivery-map {
+        width: 100%;
+        height: 300px;
+        border-radius: 10px;
+        border: 1px solid #e3e8ee;
+    }
+
+    /* Action buttons */
+    .action-btn {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        transition: transform 0.15s;
+        margin-bottom: 10px;
+    }
+    .action-btn:active { transform: scale(0.97); }
+    .btn-pickup { background: #2563eb; color: #fff; }
+    .btn-transit { background: #d97706; color: #fff; }
+    .btn-nearby { background: #059669; color: #fff; }
+    .btn-deliver { background: #10b981; color: #fff; }
+
+    .btn-failed {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ef4444;
+        border-radius: 10px;
+        background: #fff;
+        color: #ef4444;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+    }
+    .failed-note {
+        display: none;
+        margin-top: 8px;
+    }
+    .failed-note textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e3e8ee;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        resize: none;
+        min-height: 60px;
+        box-sizing: border-box;
+    }
+    .failed-note .submit-failed {
+        margin-top: 8px;
+        padding: 10px;
+        width: 100%;
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .delivered-banner {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+        color: #065f46;
+        font-weight: 600;
+    }
+
+    /* Products list */
+    .product-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.88rem;
+        color: #525f7f;
+    }
+    .product-item:last-child { border-bottom: none; }
+    .product-qty {
+        background: #f0f0f0;
+        border-radius: 10px;
+        padding: 2px 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #1a1f36;
+    }
+</style>
+
+<div class="detail-container">
+    {% include 'includes/alerts.html' %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <a href="{% url 'transportista:transportista_dashboard' %}" class="detail-back" style="margin-bottom: 0;">
+            ← Volver al Dashboard
+        </a>
+        <a href="{% url 'logout' %}" style="color: #ef4444; text-decoration: none; font-size: 0.85rem;">
+            Cerrar Sesión
+        </a>
+    </div>
+
+    <!-- Order Header -->
+    <div class="detail-section detail-full">
+        <div class="order-header">
+            <h2>Pedido #{{ pedido.order_number }}</h2>
+            <span class="order-badge
+                {% if pedido.status == 'Assigned' %}badge-assigned
+                {% elif pedido.status == 'Picked Up' %}badge-picked
+                {% elif pedido.status == 'In Transit' %}badge-transit
+                {% elif pedido.status == 'Nearby' %}badge-nearby
+                {% elif pedido.status == 'Delivered' %}badge-delivered
+                {% endif %}">
+                {% if pedido.status == 'Assigned' %}Asignado
+                {% elif pedido.status == 'Picked Up' %}Recogido
+                {% elif pedido.status == 'In Transit' %}En Camino
+                {% elif pedido.status == 'Nearby' %}Cerca
+                {% elif pedido.status == 'Delivered' %}Entregado
+                {% endif %}
+            </span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-track">
+            <div class="progress-fill" style="width: {% if tracking_step <= 1 %}0px{% elif tracking_step == 2 %}calc((100% - 80px) / 3){% elif tracking_step == 3 %}calc((100% - 80px) * 2 / 3){% else %}calc(100% - 80px){% endif %};"></div>
+            <!-- Step 1: Recogido -->
+            <div class="progress-step">
+                <div class="progress-dot {% if tracking_step >= 1 %}completed{% elif tracking_step == 0 %}current{% endif %}">
+                    {% if tracking_step >= 1 %}<i class="fas fa-check"></i>{% else %}1{% endif %}
+                </div>
+                <span class="progress-label {% if tracking_step >= 0 %}active{% endif %}">Recogido</span>
+            </div>
+            <!-- Step 2: En Camino -->
+            <div class="progress-step">
+                <div class="progress-dot {% if tracking_step >= 2 %}completed{% elif tracking_step == 1 %}current{% endif %}">
+                    {% if tracking_step >= 2 %}<i class="fas fa-check"></i>{% else %}2{% endif %}
+                </div>
+                <span class="progress-label {% if tracking_step >= 1 %}active{% endif %}">En Camino</span>
+            </div>
+            <!-- Step 3: Cerca -->
+            <div class="progress-step">
+                <div class="progress-dot {% if tracking_step >= 3 %}completed{% elif tracking_step == 2 %}current{% endif %}">
+                    {% if tracking_step >= 3 %}<i class="fas fa-check"></i>{% else %}3{% endif %}
+                </div>
+                <span class="progress-label {% if tracking_step >= 2 %}active{% endif %}">Cerca</span>
+            </div>
+            <!-- Step 4: Entregado -->
+            <div class="progress-step">
+                <div class="progress-dot {% if tracking_step >= 4 %}completed{% elif tracking_step == 3 %}current{% endif %}">
+                    {% if tracking_step >= 4 %}<i class="fas fa-check"></i>{% else %}4{% endif %}
+                </div>
+                <span class="progress-label {% if tracking_step >= 3 %}active{% endif %}">Entregado</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-col">
+            <!-- Client Info -->
+            <div class="detail-section">
+                <div class="detail-section-title">📋 Datos del Cliente</div>
+                <div class="client-grid">
+                    <span class="icon"><i class="fas fa-user"></i></span>
+                    <span>{{ pedido.full_name }}</span>
+                    <span class="icon"><i class="fas fa-phone"></i></span>
+                    <span><a href="tel:{{ pedido.phone }}" style="color: #2563eb; text-decoration: none;">{{ pedido.phone }}</a></span>
+                    <span class="icon"><i class="fas fa-envelope"></i></span>
+                    <span>{{ pedido.email }}</span>
+                    <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                    <span>{{ pedido.address_line_1 }}{% if pedido.address_line_2 %}, {{ pedido.address_line_2 }}{% endif %}</span>
+                    <span class="icon"><i class="fas fa-city"></i></span>
+                    <span>{{ pedido.city }}, {{ pedido.state }}</span>
+                </div>
+                {% if pedido.order_note %}
+                <div style="margin-top: 10px; padding: 10px; background: #fef3c7; border-radius: 8px; font-size: 0.85rem;">
+                    <strong>📝 Nota:</strong> {{ pedido.order_note }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Products -->
+            <div class="detail-section">
+                <div class="detail-section-title">📦 Productos</div>
+                {% for item in pedido.orderproduct_set.all %}
+                <div class="product-item">
+                    <span>{{ item.product.product_name }}</span>
+                    <span class="product-qty">×{{ item.quantity }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="detail-col">
+            <!-- Action Button (single next state) -->
+            <div class="detail-section">
+                {% if next_status %}
+                    <form method="POST" action="{% url 'transportista:transportista_update_status' pedido.id %}" id="mainDeliveryForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="{{ next_status }}">
+                        <input type="hidden" name="latitude" id="main-geo-lat">
+                        <input type="hidden" name="longitude" id="main-geo-lng">
+                        <input type="hidden" name="accuracy" id="main-geo-acc">
+                        <button type="submit" class="action-btn
+                            {% if next_status == 'picked_up' %}btn-pickup
+                            {% elif next_status == 'in_transit' %}btn-transit
+                            {% elif next_status == 'nearby' %}btn-nearby
+                            {% elif next_status == 'delivered' %}btn-deliver
+                            {% endif %}"
+                            onclick="return confirmAndGeolocate(this, '{{ next_status_label }}')">
+                            {{ next_status_label }}
+                        </button>
+                    </form>
+
+                    <!-- Failed Attempt (secondary) -->
+                    {% if pedido.status != 'Assigned' %}
+                    <button class="btn-failed" onclick="toggleFailedNote()">
+                        ⚠️ Reportar Intento Fallido
+                    </button>
+                    <div class="failed-note" id="failedNote">
+                        <form method="POST" action="{% url 'transportista:transportista_update_status' pedido.id %}" id="failedForm">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="failed_attempt">
+                            <input type="hidden" name="latitude" class="geo-lat">
+                            <input type="hidden" name="longitude" class="geo-lng">
+                            <input type="hidden" name="accuracy" class="geo-acc">
+                            <textarea name="note" placeholder="Describe el motivo del intento fallido..." required></textarea>
+                            <button type="submit" class="submit-failed" onclick="return confirmAndGeolocate(this, 'Reportar intento fallido')">Enviar Reporte</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                {% elif pedido.status == 'Delivered' or pedido.status == 'Completed' %}
+                    <div class="delivered-banner">
+                        ✅ Pedido entregado el {{ pedido.fecha_entrega|date:"d/m/Y H:i" }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Map -->
+            <div class="detail-section">
+                <div class="detail-section-title">🗺️ Ubicación de Entrega</div>
+                <div id="delivery-map"></div>
+            </div>
+
+            <!-- Timeline -->
+            {% if checkpoints %}
+            <div class="detail-section">
+                <div class="detail-section-title">📍 Timeline de Entrega</div>
+                <div class="timeline">
+                    {% for cp in checkpoints reversed %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-status">{{ cp.get_status_display }}</div>
+                        <div class="timeline-time">{{ cp.created_at|date:"d/m/Y H:i" }}</div>
+                        {% if cp.note %}
+                        <div class="timeline-note">{{ cp.note }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ===== Map =====
+const cityLat = {{ city_lat }};
+const cityLng = {{ city_lng }};
+
+const map = L.map('delivery-map').setView([cityLat, cityLng], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 18,
+}).addTo(map);
+
+// Client marker (destination)
+L.marker([cityLat, cityLng], {
+    title: 'Destino: {{ pedido.address_line_1 }}'
+}).addTo(map)
+ .bindPopup('<b>📍 Destino</b><br>{{ pedido.address_line_1 }}, {{ pedido.city }}')
+ .openPopup();
+
+// Store Marker (Origin)
+const storeLat = 10.120611;
+const storeLng = -64.677722;
+L.marker([storeLat, storeLng], {
+    title: 'IAA Store (Origen)'
+}).addTo(map)
+ .bindPopup('<b>🏪 IAA Store</b><br>Origen del Pedido');
+
+const routePoints = [];
+routePoints.push([storeLat, storeLng]); // Start route from store
+
+// Checkpoint Markers
+{% for cp in checkpoints reversed %}
+{% if cp.latitude and cp.longitude %}
+{
+    let cpLat = {{ cp.latitude }};
+    let cpLng = {{ cp.longitude }};
+    
+    // Add slight offset if testing on same location to avoid perfect overlap
+    cpLat += (Math.random() - 0.5) * 0.0005;
+    cpLng += (Math.random() - 0.5) * 0.0005;
+
+    routePoints.push([cpLat, cpLng]);
+
+    const cpIcon = L.divIcon({
+        html: '🚚',
+        iconSize: [30, 30],
+        className: 'leaflet-emoji-icon'
+    });
+    L.marker([cpLat, cpLng], {
+        icon: cpIcon,
+        title: '{{ cp.get_status_display }}'
+    }).addTo(map)
+     .bindPopup('<b>🚚 {{ cp.get_status_display }}</b><br>{{ cp.created_at|date:"H:i" }}');
+}
+{% endif %}
+{% endfor %}
+
+if (routePoints.length > 0) {
+    routePoints.push([cityLat, cityLng]); // connect to destination
+    L.polyline(routePoints, {color: '#39B54A', weight: 4, dashArray: '5, 10'}).addTo(map);
+    map.fitBounds(routePoints, { padding: [40, 40] });
+}
+
+// Fix Leaflet rendering in hidden/tabbed containers
+setTimeout(function() { map.invalidateSize(); }, 300);
+
+// ===== GPS helper =====
+function confirmAndGeolocate(btn, actionLabel) {
+    if (!confirm('¿' + actionLabel + '?')) return false;
+
+    const form = btn.closest('form');
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                // Try form-specific fields first, then generic
+                const latField = form.querySelector('#main-geo-lat') || form.querySelector('.geo-lat');
+                const lngField = form.querySelector('#main-geo-lng') || form.querySelector('.geo-lng');
+                const accField = form.querySelector('#main-geo-acc') || form.querySelector('.geo-acc');
+                if (latField) latField.value = pos.coords.latitude;
+                if (lngField) lngField.value = pos.coords.longitude;
+                if (accField) accField.value = pos.coords.accuracy;
+                form.submit();
+            },
+            function(err) {
+                console.log('GPS no disponible:', err.message);
+                form.submit(); // Submit anyway without coordinates
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+        );
+        return false;
+    }
+    return true;
+}
+
+function toggleFailedNote() {
+    const el = document.getElementById('failedNote');
+    el.style.display = el.style.display === 'none' ? 'block' : 'block';
+    if (el.style.display === 'block') {
+        el.querySelector('textarea').focus();
+    }
+}
+</script>
+
+{% endblock %}

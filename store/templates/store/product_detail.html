@@ -1,94 +1,261 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_tags %}
 
 {% block content %}
-<section class="section-content padding-y bg">
-<div class="container">
 
-<!-- ============================ COMPONENT 1 ================================= -->
-<div class="card">
-	<div class="row no-gutters">
-		<aside class="col-md-6">
-<article class="gallery-wrap"> 
-	<div class="img-big-wrap">
-	   <a href="#"><img src="{{ single_product.images.url }}"></a>
-	</div> <!-- img-big-wrap.// -->
-	
-</article> <!-- gallery-wrap .end// -->
-		</aside>
-		<main class="col-md-6 border-left">
-<article class="content-body">
+<section class="section-content padding-y" style="background-color: #f5f5f5; padding-top: 40px;">
+    <div class="container-fluid">
+        {% include 'includes/alerts.html' %}
+    </div>
+    <!-- Shop Detail Start -->
+    <div class="container-fluid pb-5">
+        <div class="row px-xl-5">
+            <div class="col-lg-5 mb-30">
+                <div id="product-carousel" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner bg-white p-3" style="border: 1px solid #E0E0E0; border-radius: 4px;">
+                        <div class="carousel-item active">
+                            <img class="w-100" src="{{ single_product.images.url }}" alt="{{ single_product.product_name }}" style="object-fit: contain; max-height: 500px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<h2 class="title">{{ single_product.product_name }}</h2>
+            <div class="col-lg-7 h-auto mb-30">
+                <div class="h-100 p-4 bg-white" style="border: 1px solid #E0E0E0; border-radius: 4px;">
+                    <h3 style="color: #1A3B57; font-family: 'Montserrat', sans-serif;">{{ single_product.product_name }}</h3>
+                    <div class="d-flex mb-3">
+                        <div class="mr-2" style="color: #FFD333;">
+                            <small class="fa fa-star{% if single_product.averageReview < 0.5 %}-o{% elif single_product.averageReview >= 0.5 and single_product.averageReview < 1 %}-half-o{% endif %}"></small>
+                            <small class="fa fa-star{% if single_product.averageReview < 1.5 %}-o{% elif single_product.averageReview >= 1.5 and single_product.averageReview < 2 %}-half-o{% endif %}"></small>
+                            <small class="fa fa-star{% if single_product.averageReview < 2.5 %}-o{% elif single_product.averageReview >= 2.5 and single_product.averageReview < 3 %}-half-o{% endif %}"></small>
+                            <small class="fa fa-star{% if single_product.averageReview < 3.5 %}-o{% elif single_product.averageReview >= 3.5 and single_product.averageReview < 4 %}-half-o{% endif %}"></small>
+                            <small class="fa fa-star{% if single_product.averageReview < 4.5 %}-o{% elif single_product.averageReview >= 4.5 and single_product.averageReview < 5 %}-half-o{% endif %}"></small>
+                        </div>
+                        <small class="pt-1" style="color: #1A3B57;">({{ reviews.count }} Reseñas)</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-4">
+                        <h3 class="font-weight-semi-bold mb-0" style="color: #39B54A;">{{ single_product.price|format_price:request|safe }}</h3>
+                        {% if single_product.is_on_sale and single_product.old_price %}
+                        <h4 class="text-muted ml-3 mb-0"><del>{{ single_product.old_price|format_price:request|safe }}</del></h4>
+                        {% endif %}
+                        {% if single_product.is_on_sale %}
+                        <span class="badge ml-3 px-3 py-2" style="font-size: 0.95rem; border-radius: 4px; background-color: #ffc107; color: #333;">Oferta</span>
+                        {% endif %}
+                    </div>
+                    <p class="mb-4" style="color: #333;">{{ single_product.description }}</p>
+                    
 
-<div class="mb-3"> 
-    <var class="price h4">${{ single_product.price }}</var> 
-</div> 
-
-<p>{{ single_product.description }}</p>
-
-{% if single_product.features.all %}
-<hr>
-<h6>Características</h6>
-<ul class="list-unstyled">
-{% for feature in single_product.features.all %}
-    <li><strong>{{ feature.name }}:</strong> {{ feature.value }}</li>
-{% endfor %}
-</ul>
-{% endif %}
-
-<hr>
-	{% if single_product.stock <= 0 %}
-	<h5 class="text-danger">Out of stock</h5>
-	{% else %}
-	{% if in_cart %}
-<a href="#" class="btn  btn-success"> <span class="text">Added to cart</span> <i class="fas fa-check"></i>  </a>
-<a href="{% url 'cart' %}" class="btn  btn-outline-primary"> <span class="text">View Cart</span> <i class="fas fa-eye"></i>  </a>
-	{% else %}
-	<a href="{% url 'add_cart' single_product.id %}" class="btn  btn-primary"> <span class="text">Add to cart</span> <i class="fas fa-shopping-cart"></i>  </a>
-    {%endif%}
-{% endif %}
-</article> <!-- product-info-aside .// -->
-		</main> <!-- col.// -->
-	</div> <!-- row.// -->
-</div> <!-- card.// -->
-<!-- ============================ COMPONENT 1 END .// ================================= -->
-
-<br>
-
-<div class="row">
-			<div class="col-md-9">
-
-	<header class="section-heading">
-		<h3>Customer Reviews </h3>  
-		
-	</header>
-
-	<article class="box mb-3">
-		<div class="icontext w-100">
-			<img src="{% static 'images/avatars/avatar1.jpg' %}" class="img-xs icon rounded-circle">
-			<div class="text">
-				<span class="date text-muted float-md-right">24.04.2020 </span>  
-				<h6 class="mb-1">Mike John </h6>
-				
-			</div>
-		</div> <!-- icontext.// -->
-		<div class="mt-3">
-			<p>
-				Dummy comment Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip
-			</p>	
-		</div>
-	</article>
-
-	
-
-	</div> <!-- col.// -->
-</div> <!-- row.// -->
-
-
-</div> <!-- container .//  -->
+                    
+                    <form action="{% url 'add_cart' single_product.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="d-flex align-items-center mb-4 pt-2">
+                            <div class="input-group quantity mr-3" style="width: 130px;">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-minus" style="background-color: #39B54A; color: white;">
+                                        <i class="fa fa-minus"></i>
+                                    </button>
+                                </div>
+                                <input type="text" name="quantity" class="form-control border-0 text-center" value="1" style="background-color: #e9ecef; color: #1A3B57; font-weight: bold;">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-plus" style="background-color: #39B54A; color: white;">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {% if single_product.stock <= 0 %}
+                                <h5 class="text-danger ml-3 mt-2">Agotado</h5>
+                            {% else %}
+                                <button type="submit" class="btn px-3" style="background-color: #39B54A; color: white; font-weight: 500;">
+                                    <i class="fa fa-shopping-cart mr-1"></i> Añadir al Carrito
+                                </button>
+                                {% if in_cart %}
+                                    <a href="{% url 'cart' %}" class="btn px-3 ml-2" style="border: 1px solid #1A3B57; color: #1A3B57;">
+                                        <i class="fas fa-eye mr-1"></i> Ver Carrito
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row px-xl-5">
+            <div class="col">
+                <div class="p-4 bg-white mt-4" style="border: 1px solid #E0E0E0; border-radius: 4px;">
+                    <div class="nav nav-tabs mb-4" style="border-bottom: 2px solid #E0E0E0;">
+                        <a class="nav-item nav-link active" data-toggle="tab" href="#tab-pane-1" style="color: #1A3B57; font-weight: 500; border: none; border-bottom: 3px solid transparent;">Descripción</a>
+                        <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-2" style="color: #1A3B57; font-weight: 500; border: none; border-bottom: 3px solid transparent;">Información</a>
+                        <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-3" style="color: #1A3B57; font-weight: 500; border: none; border-bottom: 3px solid transparent;">Reseñas ({{ reviews.count }})</a>
+                    </div>
+                    <style>
+                        .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+                            background-color: transparent;
+                            border-color: transparent transparent #39B54A transparent !important;
+                            color: #39B54A !important;
+                        }
+                        .nav-tabs .nav-link:hover {
+                            border-color: transparent transparent #1A3B57 transparent;
+                        }
+                    </style>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tab-pane-1">
+                            <h4 class="mb-3" style="color: #1A3B57;">Descripción del Producto</h4>
+                            <p style="color: #333;">{{ single_product.description }}</p>
+                        </div>
+                        <div class="tab-pane fade" id="tab-pane-2">
+                            <h4 class="mb-3" style="color: #1A3B57;">Información Adicional</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% if single_product.gross_weight > 0 or single_product.length > 0 or single_product.width > 0 or single_product.height > 0 or single_product.features.all %}
+                                        <ul class="list-group list-group-flush">
+                                        {% if single_product.gross_weight > 0 %}
+                                            <li class="list-group-item px-0" style="background-color: transparent; border-color: #E0E0E0; color: #333;">
+                                                <strong style="color: #1A3B57;">Peso Bruto:</strong> {{ single_product.gross_weight|floatformat:"-2" }} kg
+                                            </li>
+                                        {% endif %}
+                                        {% if single_product.length > 0 %}
+                                            <li class="list-group-item px-0" style="background-color: transparent; border-color: #E0E0E0; color: #333;">
+                                                <strong style="color: #1A3B57;">Largo:</strong> {{ single_product.length|floatformat:"-2" }} {{ single_product.length_unit }}
+                                            </li>
+                                        {% endif %}
+                                        {% if single_product.width > 0 %}
+                                            <li class="list-group-item px-0" style="background-color: transparent; border-color: #E0E0E0; color: #333;">
+                                                <strong style="color: #1A3B57;">Ancho:</strong> {{ single_product.width|floatformat:"-2" }} {{ single_product.width_unit }}
+                                            </li>
+                                        {% endif %}
+                                        {% if single_product.height > 0 %}
+                                            <li class="list-group-item px-0" style="background-color: transparent; border-color: #E0E0E0; color: #333;">
+                                                <strong style="color: #1A3B57;">Alto:</strong> {{ single_product.height|floatformat:"-2" }} {{ single_product.height_unit }}
+                                            </li>
+                                        {% endif %}
+                                        {% for feature in single_product.features.all %}
+                                            <li class="list-group-item px-0" style="background-color: transparent; border-color: #E0E0E0; color: #333;">
+                                                <strong style="color: #1A3B57;">{{ feature.name }}:</strong> {{ feature.value }}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p style="color: #333;">No hay características adicionales disponibles para este producto.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tab-pane-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="mb-4" style="color: #1A3B57;">{{ reviews.count }} reseñas para "{{ single_product.product_name }}"</h4>
+                                    {% for review in reviews %}
+                                    <div class="media mb-4">
+                                        <div class="mr-3 mt-1 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #1A3B57; color: white; font-weight: bold; font-size: 1.2rem;">
+                                            {{ review.user.first_name|first|default:review.user.username|first|upper }}
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 style="color: #1A3B57;">{{ review.user.first_name }} {{ review.user.last_name }}<small> - <i>{{ review.updated_at|date:"d M Y" }}</i></small></h6>
+                                            <div class="mb-2" style="color: #FFD333;">
+                                                <i class="fa{% if review.rating < 1 %}r{% else %}s{% endif %} fa-star"></i>
+                                                <i class="fa{% if review.rating < 2 %}r{% else %}s{% endif %} fa-star"></i>
+                                                <i class="fa{% if review.rating < 3 %}r{% else %}s{% endif %} fa-star"></i>
+                                                <i class="fa{% if review.rating < 4 %}r{% else %}s{% endif %} fa-star"></i>
+                                                <i class="fa{% if review.rating < 5 %}r{% else %}s{% endif %} fa-star"></i>
+                                            </div>
+                                            <p style="color: #333;"><b>{{ review.subject }}</b><br>{{ review.review }}</p>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <p>No hay reseñas aún. ¡Sé el primero en dejar una!</p>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h4 class="mb-4" style="color: #1A3B57;">Dejar una reseña</h4>
+                                    <small style="color: #666;">Los campos obligatorios están marcados con *</small>
+                                    {% if user.is_authenticated %}
+                                    <form action="{% url 'submit_review' single_product.id %}" method="POST" class="mt-3">
+                                        {% csrf_token %}
+                                        <div class="d-flex my-3" id="rating-stars">
+                                            <p class="mb-0 mr-2" style="color: #333;">Su Calificación * :</p>
+                                            <div style="color: #FFD333; cursor: pointer; font-size: 1.2rem;">
+                                                <i class="far fa-star star-rating" data-value="1"></i>
+                                                <i class="far fa-star star-rating" data-value="2"></i>
+                                                <i class="far fa-star star-rating" data-value="3"></i>
+                                                <i class="far fa-star star-rating" data-value="4"></i>
+                                                <i class="far fa-star star-rating" data-value="5"></i>
+                                            </div>
+                                            <input type="hidden" name="rating" id="rating-value" value="0" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="subject" style="color: #1A3B57; font-weight: 500;">Asunto</label>
+                                            <input type="text" class="form-control" id="subject" name="subject" style="border: 1px solid #ced4da;">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="review_text" style="color: #1A3B57; font-weight: 500;">Su Reseña *</label>
+                                            <textarea id="review_text" name="review" cols="30" rows="5" class="form-control" required style="border: 1px solid #ced4da;"></textarea>
+                                        </div>
+                                        <div class="form-group mb-0">
+                                            <input type="submit" value="Enviar Reseña" class="btn px-3" style="background-color: #39B54A; color: white;">
+                                        </div>
+                                    </form>
+                                    {% else %}
+                                    <p>Debes estar <a href="{% url 'login' %}" style="color: #39B54A; font-weight: bold;">iniciado sesión</a> para dejar un comentario.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Shop Detail End -->
 </section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
-{%endblock%}
+    
+    <!-- Script for Quantity Selector and Reviews -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Quantity Selector
+            const btnPlus = document.querySelector('.btn-plus');
+            const btnMinus = document.querySelector('.btn-minus');
+            const quantityInput = document.querySelector('input[name="quantity"]');
+
+            if (btnPlus && btnMinus && quantityInput) {
+                btnPlus.addEventListener('click', function() {
+                    let currentValue = parseInt(quantityInput.value) || 0;
+                    quantityInput.value = currentValue + 1;
+                });
+
+                btnMinus.addEventListener('click', function() {
+                    let currentValue = parseInt(quantityInput.value) || 0;
+                    if (currentValue > 1) {
+                        quantityInput.value = currentValue - 1;
+                    }
+                });
+            }
+
+            // Star Rating Logic
+            const stars = document.querySelectorAll('.star-rating');
+            const ratingInput = document.getElementById('rating-value');
+
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    ratingInput.value = value;
+                    updateStars(value);
+                });
+            });
+
+            function updateStars(value) {
+                stars.forEach(star => {
+                    if (parseInt(star.getAttribute('data-value')) <= parseInt(value)) {
+                        star.classList.remove('far');
+                        star.classList.add('fas');
+                    } else {
+                        star.classList.remove('fas');
+                        star.classList.add('far');
+                    }
+                });
+            }
+        });
+    </script>
+
+{% endblock %}

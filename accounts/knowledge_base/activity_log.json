@@ -1,0 +1,12 @@
+{
+  "module": "activity_log",
+  "title": "Registro de Actividad",
+  "permission": "superadmin_only",
+  "questions": [
+    "historial", "logs", "auditoria", "quien hizo", "actividad reciente"
+  ],
+  "keywords": [
+    "historial", "logs", "auditoria", "actividad", "registro"
+  ],
+  "answer": "El Registro de Actividad funciona como una auditoría del sistema.\n\nAquí puedes ver:\n- Quién realizó qué acción y a qué hora.\n- Cambios en estados de pedidos, actualizaciones de productos, etc.\n- Es útil para investigar cambios inesperados en la tienda."
+}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: none;">
+                    <div class="card-body p-4">
+                        <h4 class="card-title mb-4" style="color: #1A3B57; font-weight: 700; border-bottom: 2px solid #39B54A; padding-bottom: 10px;">
+                            <i class="fas fa-map-marker-alt" style="color: #39B54A;"></i> {{ action }} Dirección de Envío
+                        </h4>
+                        
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <div class="form-row">
+                                <div class="col form-group">
+                                    <label>{{ form.first_name.label }}</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div class="col form-group">
+                                    <label>{{ form.last_name.label }}</label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>{{ form.phone.label }}</label>
+                                {{ form.phone }}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>{{ form.address_line_1.label }}</label>
+                                {{ form.address_line_1 }}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>{{ form.address_line_2.label }}</label>
+                                {{ form.address_line_2 }}
+                                <small class="text-muted">Opcional: Apartamento, suite, etc.</small>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="col form-group">
+                                    <label>{{ form.city.label }} (Solo envíos habilitados)</label>
+                                    {{ form.city }}
+                                </div>
+                                <div class="col form-group">
+                                    <label>Estado</label>
+                                    <input type="text" class="form-control" value="Anzoátegui" disabled>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-4 text-right">
+                                <a href="{% url 'dashboard' %}?tab=addresses" class="btn btn-outline-secondary mr-2">Cancelar</a>
+                                <button type="submit" class="btn text-white" style="background-color: #39B54A;">Guardar Dirección</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

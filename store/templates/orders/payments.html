@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+
+<section class="section-content padding-y bg">
+<div class="container">
+
+<!-- ============================ COMPONENT 1 ================================= -->
+<h4 class="text-center mb-10">Resumen del pedido y Métodos de Pago</h4>
+<div class="row">
+	
+	<aside class="col-lg-8">
+     <div class="card">
+      <h5 class="card-header">Dirección de Facturación</h5>
+      <div class="card-body">
+        <p class="card-text mb-0">{{order.full_name}}</p>
+		<p class="card-text mb-0">{{order.full_address}}</p>
+		<p class="card-text mb-0">{{order.city}}, {{order.state}}</p>
+		<p class="card-text mb-0">{{order.email}}</p>
+		<p class="card-text mb-0">{{order.phone}}</p>
+		{% if order.order_note %}
+		<b>Nota del Pedido:</b> {{order.order_note}}
+		{% endif %}
+
+      </div>
+    </div>
+
+    <div class="card">
+      <h5 class="card-header">Metodo de Pago</h5>
+      <div class="card-body">
+        <p class="card-text">PayPal</p>
+      </div>
+    </div>
+
+     <div class="card">
+      <h5 class="card-header">Detalles del Producto</h5>
+      <div class="card-body">
+        <table class="table table-borderless table-shopping-cart">
+				<thead>
+					<tr>
+						<th>Producto</th>
+						<th>Precio</th>
+						<th>Cantidad</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					{% for cart_item in cart_items %}
+					<tr>
+						<td>
+							<img src="{{ cart_item.product.images.url }}" width="40" class="mr-2">
+							{{ cart_item.product.product_name }}
+						</td>
+						<td>{{ cart_item.product.price|format_price:request }}</td>
+						<td>{{ cart_item.quantity }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+      </div>
+    </div>
+
+	</aside> <!-- col.// -->
+	<aside class="col-lg-4">
+
+		<div class="card">
+		<div class="card-body">
+			<dl class="dlist-align">
+			  <dt>Subtotal:</dt>
+			  <dd class="text-right">{{ total|format_price:request }}</dd>
+			</dl>
+			<dl class="dlist-align">
+			  <dt>IVA (16%):</dt>
+			  <dd class="text-right">{{ tax|format_price:request }}</dd>
+			</dl>
+			<dl class="dlist-align" id="igtf-row" style="display: none;">
+			  <dt>IGTF (3%):</dt>
+			  <dd class="text-right" id="igtf-amount">$ 0.00</dd>
+			</dl>
+			<dl class="dlist-align" id="paypal-fee-row" style="display: none;">
+			  <dt>Comisión PayPal:</dt>
+			  <dd class="text-right" id="paypal-fee-amount">$ 0.00</dd>
+			</dl>
+			<dl class="dlist-align align-items-center mt-3 border-top pt-3">
+			  <dt>Total a pagar:</dt>
+			  <dd class="text-right text-dark b mb-0">
+			  	<strong id="final-total" style="font-size: 1.2rem;">{{ grand_total|format_price:request }}</strong>
+			  </dd>
+			</dl>
+			<hr>
+			<h5 class="mb-3" style="color: #1A3B57; font-weight: 600;">MÉTODO DE PAGO</h5>
+			<div class="form-group">
+				<div class="custom-control custom-radio">
+					<input type="radio" class="custom-control-input" name="payment" id="paypal" checked>
+					<label class="custom-control-label" for="paypal" style="cursor: pointer;">PayPal</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="custom-control custom-radio">
+					<input type="radio" class="custom-control-input" name="payment" id="pagomovil">
+					<label class="custom-control-label" for="pagomovil" style="cursor: pointer;">Pago Móvil</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="custom-control custom-radio">
+					<input type="radio" class="custom-control-input" name="payment" id="zelle">
+					<label class="custom-control-label" for="zelle" style="cursor: pointer;">Zelle</label>
+				</div>
+			</div>
+			<div class="form-group mb-4">
+				<div class="custom-control custom-radio">
+					<input type="radio" class="custom-control-input" name="payment" id="cashea">
+					<label class="custom-control-label" for="cashea" style="cursor: pointer;">Cashea</label>
+				</div>
+			</div>
+			
+			<div id="paypal-button-container" style="display: block;"></div>
+			<button id="standard-btn" class="btn btn-block font-weight-bold py-3" style="background-color: #39B54A; color: white; display: none;">Realizar Pedido</button>
+			
+			<script>
+				document.addEventListener("DOMContentLoaded", function() {
+					const paypalRadio = document.getElementById('paypal');
+					const pagomovilRadio = document.getElementById('pagomovil');
+					const zelleRadio = document.getElementById('zelle');
+					const casheaRadio = document.getElementById('cashea');
+					const paypalContainer = document.getElementById('paypal-button-container');
+					const standardBtn = document.getElementById('standard-btn');
+
+					const baseTotalUSD = parseFloat('{{ grand_total|stringformat:"f" }}');
+					const isVES = {% if request.session.currency == 'VES' %}true{% else %}false{% endif %};
+					const bcvRate = parseFloat('{{ current_bcv_rate|stringformat:"f" }}');
+
+					function formatCurrency(amountUSD) {
+						if (isVES) {
+							return "Bs. " + (amountUSD * bcvRate).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+						} else {
+							return "$" + amountUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+						}
+					}
+
+					function updatePaymentView() {
+						let finalTotalUSD = baseTotalUSD;
+						let igtfUSD = 0;
+						let paypalFeeUSD = 0;
+
+						if (paypalRadio.checked) {
+							paypalContainer.style.display = 'block';
+							standardBtn.style.display = 'none';
+
+							igtfUSD = baseTotalUSD * 0.03;
+							let totalWithIgtf = baseTotalUSD + igtfUSD;
+							finalTotalUSD = (totalWithIgtf + 0.30) / (1 - 0.054);
+							paypalFeeUSD = finalTotalUSD - totalWithIgtf;
+							
+							document.getElementById('igtf-row').style.display = 'flex';
+							document.getElementById('paypal-fee-row').style.display = 'flex';
+
+						} else if (pagomovilRadio.checked || zelleRadio.checked || casheaRadio.checked) {
+							paypalContainer.style.display = 'none';
+							standardBtn.style.display = 'block';
+							standardBtn.innerText = 'Proceder con el pago';
+							standardBtn.disabled = false;
+							standardBtn.style.opacity = '1';
+
+							if (zelleRadio.checked) {
+								igtfUSD = baseTotalUSD * 0.03;
+								finalTotalUSD = baseTotalUSD + igtfUSD;
+								document.getElementById('igtf-row').style.display = 'flex';
+								document.getElementById('paypal-fee-row').style.display = 'none';
+							} else {
+								document.getElementById('igtf-row').style.display = 'none';
+								document.getElementById('paypal-fee-row').style.display = 'none';
+							}
+						}
+
+						document.getElementById('igtf-amount').innerText = formatCurrency(igtfUSD);
+						document.getElementById('paypal-fee-amount').innerText = formatCurrency(paypalFeeUSD);
+						document.getElementById('final-total').innerText = formatCurrency(finalTotalUSD);
+
+						// Update PayPal amount
+						amount = finalTotalUSD.toFixed(2);
+					}
+
+					// Inicializar la vista
+					updatePaymentView();
+
+					paypalRadio.addEventListener('change', updatePaymentView);
+					pagomovilRadio.addEventListener('change', updatePaymentView);
+					zelleRadio.addEventListener('change', updatePaymentView);
+					casheaRadio.addEventListener('change', updatePaymentView);
+
+					standardBtn.addEventListener('click', function() {
+					if (pagomovilRadio.checked) {
+						window.location.href = "{% url 'payment_method_instructions' 'pagomovil' order.order_number %}";
+						return;
+					} else if (zelleRadio.checked) {
+						window.location.href = "{% url 'payment_method_instructions' 'zelle' order.order_number %}";
+						return;
+					} else if (casheaRadio.checked) {
+						window.location.href = "{% url 'payment_method_instructions' 'cashea' order.order_number %}";
+						return;
+					}
+				});
+				});
+			</script>
+		</div>
+		</div>
+
+</aside>
+
+
+</div>
+<!-- ============================ COMPONENT 1 END .// ================================= -->
+
+</div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+	function getCookie(name) {
+	let cookieValue = null;
+	if (document.cookie && document.cookie !== '') {
+		const cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			const cookie = cookies[i].trim();
+			// Does this cookie string begin with the name we want?
+			if (cookie.substring(0, name.length + 1) === (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
+	}
+
+ var amount = '{{ grand_total|floatformat:2 }}';
+ var url = "{% url 'payments' %}";
+ var csrftoken = getCookie('csrftoken');
+ var orderID ="{{order.order_number}}";
+ var payment_method = 'PayPal';
+ var redirect_url = "{% url 'order_complete' %}";
+
+  paypal.Buttons({
+
+    style:{
+	  color: 'blue',
+	  shape: 'rect',
+	  label: 'pay',
+	  height: 40
+	},
+
+    createOrder: function(data, actions) {
+      console.log("Monto a cobrar por PayPal:", amount);
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: amount,
+            currency_code: 'USD'
+          }
+        }]
+      });
+    },
+	onApprove: function(data, actions) {
+		return actions.order.capture().then(function(details) {
+			console.log(details);
+			fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrftoken
+				},
+				body: JSON.stringify({
+					orderID: orderID,
+					transID: details.id,
+					payment_method: payment_method,
+					status: details.status,
+				})
+			})
+			.then(response => response.json())
+			.then((data) => {
+				window.location.href = redirect_url + '?order_number=' + data.order_number + '&payment_id=' + data.transID;
+			}).catch(error => {
+				console.error('Error:', error);
+			});
+		});
+	},
+    onError: function(err) {
+      console.error('Error de PayPal:', err);
+    }
+  }).render('#paypal-button-container');
+</script>
+{% endblock %}

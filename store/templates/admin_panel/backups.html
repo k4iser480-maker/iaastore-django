@@ -1,0 +1,559 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Respaldo y Restauración{% endblock %}
+{% block breadcrumb %}<span class="sep">›</span> Respaldo y Restauración{% endblock %}
+{% block page_title %}Respaldo y Restauración{% endblock %}
+{% block page_desc %}Gestiona los respaldos de la base de datos del sistema.{% endblock %}
+
+{% block content %}
+
+<!-- Toast notifications -->
+<div class="ap-toast-container" id="toastContainer">
+    {% for message in messages %}
+    <div class="ap-toast ap-toast-{% if message.tags == 'danger' %}error{% elif message.tags == 'warning' %}warning{% else %}success{% endif %}">
+        <i class="fas {% if message.tags == 'danger' %}fa-times-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i>
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Top Actions Bar -->
+<div class="ap-toolbar" style="margin-bottom: 20px;">
+    <button class="ap-btn ap-btn-primary" onclick="openCreateModal()" id="btnCreateBackup">
+        <i class="fas fa-plus"></i> Crear Respaldo
+    </button>
+    <button class="ap-btn" onclick="openUploadModal()" id="btnUploadBackup">
+        <i class="fas fa-cloud-upload-alt"></i> Subir Respaldo
+    </button>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span class="ap-badge ap-badge-blue"><span class="dot"></span> {{ backups|length }} respaldo{{ backups|length|pluralize:"s" }}</span>
+    </div>
+</div>
+
+<div class="ap-grid-2-1">
+    <!-- Main: Backup List -->
+    <div>
+        <div class="ap-card">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-database" style="margin-right:6px;"></i> Respaldos Disponibles</h3>
+            </div>
+            {% if backups %}
+            <div style="overflow-x: auto;">
+                <table class="ap-table" id="backupsTable">
+                    <thead>
+                        <tr>
+                            <th>Archivo</th>
+                            <th>Fecha</th>
+                            <th>Tamaño</th>
+                            <th>Tipo</th>
+                            <th>Registros</th>
+                            <th style="text-align:right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for backup in backups %}
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div class="ap-avatar {% if backup.type == 'completo' %}green{% elif backup.type == 'parcial' %}blue{% else %}red{% endif %}" style="width:32px; height:32px; font-size:12px;">
+                                        <i class="fas {% if backup.type == 'completo' %}fa-database{% elif backup.type == 'parcial' %}fa-layer-group{% else %}fa-exclamation{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="ap-user-name" style="font-size:12px; word-break:break-all;">{{ backup.filename }}</div>
+                                        {% if backup.description %}
+                                        <div class="ap-user-email">{{ backup.description }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="white-space:nowrap;">
+                                {% if backup.created_at %}
+                                <span style="font-size:13px;">{{ backup.created_at|slice:":10" }}</span>
+                                <br><span style="font-size:11px; color:var(--ap-text-muted);">{{ backup.created_at|slice:"11:16" }}</span>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td style="font-weight:600;">{{ backup.size }}</td>
+                            <td>
+                                {% if backup.type == 'completo' %}
+                                <span class="ap-badge ap-badge-green"><span class="dot"></span> Completo</span>
+                                {% elif backup.type == 'parcial' %}
+                                <span class="ap-badge ap-badge-blue"><span class="dot"></span> Parcial</span>
+                                {% else %}
+                                <span class="ap-badge ap-badge-red"><span class="dot"></span> Corrupto</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight:500;">{{ backup.record_count }}</td>
+                            <td>
+                                <div class="ap-backup-actions" style="justify-content:flex-end;">
+                                    <a href="{% url 'admin_download_backup' backup.filename %}" class="ap-btn-icon" title="Descargar">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    {% if backup.type != 'corrupto' %}
+                                    <button class="ap-btn-icon ap-btn-warning" title="Restaurar"
+                                            onclick="openRestoreModal('{{ backup.filename }}', '{{ backup.type }}', '{{ backup.record_count }}', '{{ backup.modules|join:", " }}')">
+                                        <i class="fas fa-undo-alt"></i>
+                                    </button>
+                                    {% endif %}
+                                    <button class="ap-btn-icon ap-btn-danger" title="Eliminar"
+                                            onclick="openDeleteModal('{{ backup.filename }}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="ap-empty-state">
+                <i class="fas fa-shield-alt"></i>
+                <h4>Sin respaldos</h4>
+                <p>Aún no has creado ningún respaldo. Crea uno para proteger tus datos.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar: Info & Quick Stats -->
+    <div>
+        <!-- Quick Info -->
+        <div class="ap-card" style="margin-bottom: 20px;">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-info-circle" style="margin-right:6px;"></i> Información</h3>
+            </div>
+            <div class="ap-card-body">
+                <div class="ap-sys-grid" style="grid-template-columns: 1fr;">
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Versión de Esquema</div>
+                        <div class="ap-sys-value">v1.0</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Formato</div>
+                        <div class="ap-sys-value">JSON</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Total Respaldos</div>
+                        <div class="ap-sys-value">{{ backups|length }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automatic Backup Schedule -->
+        <div class="ap-card" style="margin-bottom: 20px;">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-clock" style="margin-right:6px;"></i> Respaldo Automático</h3>
+            </div>
+            <div class="ap-card-body">
+                <form method="POST" action="{% url 'admin_update_backup_schedule' %}" id="scheduleForm">
+                    {% csrf_token %}
+                    <!-- Toggle -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                        <label style="font-size:13px; font-weight:600; color:var(--ap-text-primary);">Estado</label>
+                        <label class="ap-toggle" style="position:relative; display:inline-block; width:44px; height:24px;">
+                            <input type="checkbox" name="backup_enabled" id="backupEnabled"
+                                   {% if backup_settings.enabled %}checked{% endif %}
+                                   style="opacity:0; width:0; height:0;">
+                            <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:{% if backup_settings.enabled %}var(--ap-accent){% else %}#ccc{% endif %}; border-radius:24px; transition:.3s;"
+                                  id="toggleTrack"></span>
+                            <span style="position:absolute; cursor:pointer; top:2px; left:{% if backup_settings.enabled %}22px{% else %}2px{% endif %}; width:20px; height:20px; background:#fff; border-radius:50%; transition:.3s; box-shadow:0 1px 3px rgba(0,0,0,.2);"
+                                  id="toggleThumb"></span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <span class="ap-badge {% if backup_settings.enabled %}ap-badge-green{% else %}ap-badge-red{% endif %}" id="statusBadge">
+                            <span class="dot"></span>
+                            {% if backup_settings.enabled %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Interval -->
+                    <div class="ap-form-group" style="margin-bottom:16px;">
+                        <label class="ap-label" for="intervalMinutes">Intervalo (minutos)</label>
+                        <input type="number" name="interval_minutes" id="intervalMinutes"
+                               class="ap-input" min="1" value="{{ backup_settings.interval_minutes }}"
+                               style="font-size:14px;">
+                        <div style="margin-top:6px; font-size:11px; color:var(--ap-text-muted);">
+                            1 = cada min &middot; 60 = cada hora &middot; 1440 = diario
+                        </div>
+                    </div>
+
+                    <!-- Quick presets -->
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
+                        <button type="button" class="ap-btn" style="padding:4px 10px; font-size:11px;" onclick="document.getElementById('intervalMinutes').value=1">1 min</button>
+                        <button type="button" class="ap-btn" style="padding:4px 10px; font-size:11px;" onclick="document.getElementById('intervalMinutes').value=60">1 hora</button>
+                        <button type="button" class="ap-btn" style="padding:4px 10px; font-size:11px;" onclick="document.getElementById('intervalMinutes').value=1440">Diario</button>
+                        <button type="button" class="ap-btn" style="padding:4px 10px; font-size:11px;" onclick="document.getElementById('intervalMinutes').value=10080">Semanal</button>
+                    </div>
+
+                    <button type="submit" class="ap-btn ap-btn-primary" style="width:100%;">
+                        <i class="fas fa-save"></i> Guardar Programación
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Available Modules -->
+        <div class="ap-card">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-cubes" style="margin-right:6px;"></i> Módulos Disponibles</h3>
+            </div>
+            <div class="ap-card-body" style="padding: 12px 20px;">
+                {% for module in modules %}
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 0; {% if not forloop.last %}border-bottom: 1px solid #f3f4f6;{% endif %}">
+                    <i class="fas {% if module == 'Usuarios' %}fa-users{% elif module == 'Roles' %}fa-user-shield{% elif module == 'Categorías' %}fa-tags{% elif module == 'Productos' %}fa-box{% elif module == 'Pedidos' %}fa-shopping-bag{% elif module == 'Carritos' %}fa-shopping-cart{% elif module == 'Tickets' %}fa-ticket-alt{% elif module == 'Actividad' %}fa-history{% endif %}" style="width:20px; text-align:center; color:var(--ap-text-muted);"></i>
+                    <span style="font-size:13px; font-weight:500;">{{ module }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL: Crear Respaldo ===== -->
+<div class="ap-modal-overlay" id="createModal">
+    <div class="ap-modal">
+        <div class="ap-modal-header">
+            <h3><i class="fas fa-plus-circle" style="color:var(--ap-accent);"></i> Crear Respaldo</h3>
+            <button class="ap-modal-close" onclick="closeModal('createModal')">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'admin_create_backup' %}" id="createBackupForm">
+            {% csrf_token %}
+            <div class="ap-modal-body">
+                <!-- Type toggle -->
+                <label class="ap-label">Tipo de Respaldo</label>
+                <div class="ap-type-toggle">
+                    <button type="button" class="ap-type-option active" id="btnTypeFull" onclick="setBackupType('full')">
+                        <i class="fas fa-database"></i>&nbsp; Completo
+                    </button>
+                    <button type="button" class="ap-type-option" id="btnTypePartial" onclick="setBackupType('partial')">
+                        <i class="fas fa-layer-group"></i>&nbsp; Selectivo
+                    </button>
+                </div>
+                <input type="hidden" name="backup_type" id="backupTypeInput" value="full">
+
+                <!-- Module selection (hidden for full) -->
+                <div id="moduleSelection" style="display:none; margin-bottom:16px;">
+                    <label class="ap-label">Selecciona los módulos a incluir</label>
+                    <div class="ap-module-grid">
+                        {% for module in modules %}
+                        <label class="ap-module-check" id="modCheck_{{ forloop.counter }}">
+                            <input type="checkbox" name="modules" value="{{ module }}" onchange="toggleModuleCheck(this)">
+                            <i class="fas {% if module == 'Usuarios' %}fa-users{% elif module == 'Roles' %}fa-user-shield{% elif module == 'Categorías' %}fa-tags{% elif module == 'Productos' %}fa-box{% elif module == 'Pedidos' %}fa-shopping-bag{% elif module == 'Carritos' %}fa-shopping-cart{% elif module == 'Tickets' %}fa-ticket-alt{% elif module == 'Actividad' %}fa-history{% endif %}" style="color:var(--ap-text-muted);"></i>
+                            {{ module }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="ap-form-group">
+                    <label class="ap-label">Descripción (opcional)</label>
+                    <input type="text" name="description" class="ap-input" placeholder="Ej: Respaldo antes de actualización...">
+                </div>
+
+                <!-- Progress bar -->
+                <div class="ap-progress-indeterminate" id="createProgress"></div>
+            </div>
+            <div class="ap-modal-footer">
+                <button type="button" class="ap-btn" onclick="closeModal('createModal')">Cancelar</button>
+                <button type="submit" class="ap-btn ap-btn-primary" id="btnSubmitCreate">
+                    <i class="fas fa-download"></i> Generar Respaldo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== MODAL: Subir Respaldo ===== -->
+<div class="ap-modal-overlay" id="uploadModal">
+    <div class="ap-modal">
+        <div class="ap-modal-header">
+            <h3><i class="fas fa-cloud-upload-alt" style="color:var(--ap-blue);"></i> Subir Respaldo Externo</h3>
+            <button class="ap-modal-close" onclick="closeModal('uploadModal')">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'admin_upload_backup' %}" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            <div class="ap-modal-body">
+                <div class="ap-dropzone" id="dropzone" onclick="document.getElementById('backupFileInput').click();">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Arrastra tu archivo aquí o <strong>haz clic</strong> para seleccionar</p>
+                    <p class="ap-dropzone-hint">Solo archivos .json generados por el sistema</p>
+                </div>
+                <input type="file" name="backup_file" id="backupFileInput" accept=".json" style="display:none;" onchange="handleFileSelect(this)">
+                <div id="selectedFileName" style="display:none; margin-top:12px; padding:12px; background:#f9fafb; border-radius:6px; display:flex; align-items:center; gap:10px;">
+                </div>
+
+                <!-- Progress bar -->
+                <div class="ap-progress-indeterminate" id="uploadProgress"></div>
+            </div>
+            <div class="ap-modal-footer">
+                <button type="button" class="ap-btn" onclick="closeModal('uploadModal')">Cancelar</button>
+                <button type="submit" class="ap-btn ap-btn-primary" id="btnSubmitUpload" disabled>
+                    <i class="fas fa-upload"></i> Subir Archivo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== MODAL: Confirmar Restauración ===== -->
+<div class="ap-modal-overlay" id="restoreModal">
+    <div class="ap-modal">
+        <div class="ap-modal-header">
+            <h3><i class="fas fa-exclamation-triangle" style="color:var(--ap-amber);"></i> Confirmar Restauración</h3>
+            <button class="ap-modal-close" onclick="closeModal('restoreModal')">&times;</button>
+        </div>
+        <form method="POST" id="restoreForm" action="">
+            {% csrf_token %}
+            <div class="ap-modal-body">
+                <div class="ap-warning-box">
+                    <i class="fas fa-radiation-alt"></i>
+                    <div>
+                        <strong>¡Atención!</strong> Esta acción sobrescribirá los datos actuales de la base de datos
+                        con los contenidos del respaldo seleccionado. Esta operación <strong>no se puede deshacer</strong>.
+                    </div>
+                </div>
+
+                <div style="margin-top:16px;">
+                    <div class="ap-sys-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="ap-sys-item">
+                            <div class="ap-sys-label">Archivo</div>
+                            <div class="ap-sys-value" id="restoreFilename" style="font-size:12px; word-break:break-all;">—</div>
+                        </div>
+                        <div class="ap-sys-item">
+                            <div class="ap-sys-label">Tipo</div>
+                            <div class="ap-sys-value" id="restoreType">—</div>
+                        </div>
+                        <div class="ap-sys-item">
+                            <div class="ap-sys-label">Registros</div>
+                            <div class="ap-sys-value" id="restoreRecords">—</div>
+                        </div>
+                        <div class="ap-sys-item">
+                            <div class="ap-sys-label">Módulos</div>
+                            <div class="ap-sys-value" id="restoreModules" style="font-size:12px;">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ap-confirm-check">
+                    <input type="checkbox" id="restoreConfirmCheck" onchange="toggleRestoreBtn()">
+                    <label for="restoreConfirmCheck" style="cursor:pointer;">
+                        Entiendo que esta acción <strong>sobrescribirá todos los datos actuales</strong> de los módulos incluidos en este respaldo y que no se puede deshacer.
+                    </label>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="ap-progress-indeterminate" id="restoreProgress"></div>
+            </div>
+            <div class="ap-modal-footer">
+                <button type="button" class="ap-btn" onclick="closeModal('restoreModal')">Cancelar</button>
+                <button type="submit" class="ap-btn ap-btn-primary" id="btnSubmitRestore" disabled style="background:var(--ap-red); border-color:var(--ap-red);">
+                    <i class="fas fa-undo-alt"></i> Restaurar Base de Datos
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== MODAL: Confirmar Eliminación ===== -->
+<div class="ap-modal-overlay" id="deleteModal">
+    <div class="ap-modal">
+        <div class="ap-modal-header">
+            <h3><i class="fas fa-trash-alt" style="color:var(--ap-red);"></i> Eliminar Respaldo</h3>
+            <button class="ap-modal-close" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <form method="POST" id="deleteForm" action="">
+            {% csrf_token %}
+            <div class="ap-modal-body">
+                <p style="color:var(--ap-text-secondary); font-size:14px;">
+                    ¿Estás seguro de que deseas eliminar este respaldo? Esta acción no se puede deshacer.
+                </p>
+                <div class="ap-sys-item" style="margin-top:12px;">
+                    <div class="ap-sys-label">Archivo a eliminar</div>
+                    <div class="ap-sys-value" id="deleteFilename" style="font-size:13px; word-break:break-all;">—</div>
+                </div>
+            </div>
+            <div class="ap-modal-footer">
+                <button type="button" class="ap-btn" onclick="closeModal('deleteModal')">Cancelar</button>
+                <button type="submit" class="ap-btn ap-btn-primary" style="background:var(--ap-red); border-color:var(--ap-red);">
+                    <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ===== Modal Management =====
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.ap-modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+});
+
+// ===== Create Backup =====
+function openCreateModal() {
+    setBackupType('full');
+    document.getElementById('createBackupForm').reset();
+    openModal('createModal');
+}
+
+function setBackupType(type) {
+    const btnFull = document.getElementById('btnTypeFull');
+    const btnPartial = document.getElementById('btnTypePartial');
+    const moduleSelect = document.getElementById('moduleSelection');
+    const input = document.getElementById('backupTypeInput');
+
+    if (type === 'full') {
+        btnFull.classList.add('active');
+        btnPartial.classList.remove('active');
+        moduleSelect.style.display = 'none';
+        input.value = 'full';
+    } else {
+        btnPartial.classList.add('active');
+        btnFull.classList.remove('active');
+        moduleSelect.style.display = 'block';
+        input.value = 'partial';
+    }
+}
+
+function toggleModuleCheck(cb) {
+    const label = cb.closest('.ap-module-check');
+    if (cb.checked) {
+        label.classList.add('selected');
+    } else {
+        label.classList.remove('selected');
+    }
+}
+
+// Form submit: show progress
+document.getElementById('createBackupForm').addEventListener('submit', function() {
+    document.getElementById('createProgress').classList.add('active');
+    document.getElementById('btnSubmitCreate').disabled = true;
+    document.getElementById('btnSubmitCreate').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+});
+
+// ===== Upload Backup =====
+function openUploadModal() {
+    document.getElementById('uploadForm').reset();
+    document.getElementById('selectedFileName').style.display = 'none';
+    document.getElementById('btnSubmitUpload').disabled = true;
+    openModal('uploadModal');
+}
+
+function handleFileSelect(input) {
+    const fileNameDiv = document.getElementById('selectedFileName');
+    if (input.files.length > 0) {
+        const file = input.files[0];
+        const size = file.size < 1024 ? file.size + ' B' :
+                     file.size < 1048576 ? (file.size / 1024).toFixed(1) + ' KB' :
+                     (file.size / 1048576).toFixed(1) + ' MB';
+        fileNameDiv.innerHTML = `
+            <i class="fas fa-file-code" style="color:var(--ap-accent); font-size:20px;"></i>
+            <div>
+                <div style="font-weight:600; font-size:13px;">${file.name}</div>
+                <div style="font-size:12px; color:var(--ap-text-muted);">${size}</div>
+            </div>
+        `;
+        fileNameDiv.style.display = 'flex';
+        document.getElementById('btnSubmitUpload').disabled = false;
+    } else {
+        fileNameDiv.style.display = 'none';
+        document.getElementById('btnSubmitUpload').disabled = true;
+    }
+}
+
+// Drag and drop
+const dropzone = document.getElementById('dropzone');
+['dragenter', 'dragover'].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+});
+['dragleave', 'drop'].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+});
+dropzone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('backupFileInput').files = files;
+        handleFileSelect(document.getElementById('backupFileInput'));
+    }
+});
+
+document.getElementById('uploadForm').addEventListener('submit', function() {
+    document.getElementById('uploadProgress').classList.add('active');
+    document.getElementById('btnSubmitUpload').disabled = true;
+    document.getElementById('btnSubmitUpload').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+});
+
+// ===== Restore Backup =====
+function openRestoreModal(filename, type, records, modules) {
+    document.getElementById('restoreFilename').textContent = filename;
+    document.getElementById('restoreType').textContent = type === 'completo' ? 'Completo' : 'Parcial';
+    document.getElementById('restoreRecords').textContent = records;
+    document.getElementById('restoreModules').textContent = modules || 'Todos';
+    document.getElementById('restoreConfirmCheck').checked = false;
+    document.getElementById('btnSubmitRestore').disabled = true;
+    document.getElementById('restoreForm').action = `/accounts/panel/backups/restore/${filename}/`;
+    openModal('restoreModal');
+}
+
+function toggleRestoreBtn() {
+    document.getElementById('btnSubmitRestore').disabled = !document.getElementById('restoreConfirmCheck').checked;
+}
+
+document.getElementById('restoreForm').addEventListener('submit', function() {
+    document.getElementById('restoreProgress').classList.add('active');
+    document.getElementById('btnSubmitRestore').disabled = true;
+    document.getElementById('btnSubmitRestore').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restaurando...';
+});
+
+// ===== Delete Backup =====
+function openDeleteModal(filename) {
+    document.getElementById('deleteFilename').textContent = filename;
+    document.getElementById('deleteForm').action = `/accounts/panel/backups/delete/${filename}/`;
+    openModal('deleteModal');
+}
+
+// ===== Auto-remove toasts after 5s =====
+setTimeout(() => {
+    document.querySelectorAll('.ap-toast').forEach(t => t.remove());
+}, 5000);
+
+// ===== Backup Schedule Toggle =====
+const backupToggle = document.getElementById('backupEnabled');
+if (backupToggle) {
+    backupToggle.addEventListener('change', function() {
+        const track = document.getElementById('toggleTrack');
+        const thumb = document.getElementById('toggleThumb');
+        const badge = document.getElementById('statusBadge');
+        if (this.checked) {
+            track.style.background = 'var(--ap-accent)';
+            thumb.style.left = '22px';
+            badge.className = 'ap-badge ap-badge-green';
+            badge.innerHTML = '<span class="dot"></span> Activo';
+        } else {
+            track.style.background = '#ccc';
+            thumb.style.left = '2px';
+            badge.className = 'ap-badge ap-badge-red';
+            badge.innerHTML = '<span class="dot"></span> Inactivo';
+        }
+    });
+}
+</script>
+{% endblock %}

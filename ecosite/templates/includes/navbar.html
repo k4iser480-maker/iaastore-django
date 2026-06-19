@@ -1,24 +1,20 @@
 {% load static %}
 
 <header class="section-header">
-<nav class="navbar p-md-0 navbar-expand-sm navbar-light border-bottom">
+<nav class="navbar p-md-0 navbar-expand-sm navbar-light border-bottom" style="background-color: #142d42;">
 <div class="container">
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTop4" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarTop4">
     <ul class="navbar-nav mr-auto">
-    	<li class="nav-item dropdown">
-		 	<a href="#" class="nav-link">Español</a>
-		    
+    	<li class="nav-item">
+		 	<a href="{% url 'help' %}" class="nav-link" style="color: #FFFFFF;">Ayuda</a>
 		</li>
-		<li class="nav-item dropdown">
-			<a href="#" class="nav-link"> USD </a>
-		</li>
+
     </ul>
     <ul class="navbar-nav">
-		<li><a href="#" class="nav-link"> <i class="fa fa-envelope"></i> Correo </a></li>
-		<li><a href="#" class="nav-link"> <i class="fa fa-phone"></i> Llámanos </a></li>
+		<li><a href="{% url 'about' %}" class="nav-link" style="color: #FFFFFF;"> <i class="fa fa-info-circle"></i> Sobre nosotros </a></li>
 	</ul> <!-- list-inline //  -->
   </div> <!-- navbar-collapse .// -->
 </div> <!-- container //  -->
@@ -29,30 +25,25 @@
 <div class="row align-items-center">
 	<div class="col-lg-2 col-md-3 col-6">
 		<a href="{% url 'home' %}" class="brand-wrap">
-			<img class="logo" src="{% static 'images/logo.png' %}">
+			<img class="logo" src="{% static 'images/logo_iaa.png' %}">
 		</a> <!-- brand-wrap.// -->
 	</div>
-	<div class="col-lg col-sm col-md col-6 flex-grow-0">
-		<div class="category-wrap dropdown d-inline-block float-right">
-			<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"> 
-				<i class="fa fa-bars"></i> All category 
-			</button>
-			<div class="dropdown-menu">
-				{% comment %} Use categories provided by the context processor `menu_links` {% endcomment %}
-				<a class="dropdown-item" href="{% url 'store' %}">Todos los productos</a>
-				{% for category in links %}
-					<a class="dropdown-item" href="{{ category.get_url }}">{{ category.category_name }}</a>
-				{% empty %}
-					<a class="dropdown-item" href="#">Sin categorias</a>
-				{% endfor %}
-			</div>
-		</div>  <!-- category-wrap.// -->
-	</div> <!-- col.// -->
-	<a href="{% url 'store' %}" class="btn btn-outline-primary">Tienda</a>
-	<div class="col-lg  col-md-6 col-sm-12 col">
+
+	<a href="{% url 'home' %}" class="btn btn-outline-primary mr-1">Home</a>
+	<a href="{% url 'store' %}" class="btn btn-outline-primary mr-1">Tienda</a>
+	<div class="dropdown d-inline-block mr-3">
+		<a href="#" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown">Categorías</a>
+		<div class="dropdown-menu">
+			<a class="dropdown-item" href="{% url 'store' %}">Todas las Categorías</a>
+			{% for category in links %}
+			<a class="dropdown-item" href="{{ category.get_url }}">{{ category.category_name }}</a>
+			{% endfor %}
+		</div>
+	</div>
+	<div class="col-lg flex-grow-1 col-md-6 col-sm-12 col">
 		<form action="{% url 'search' %}" class="search" method="GET">
 			<div class="input-group w-100">
-			    <input type="text" class="form-control" style="width:60%;" placeholder="Buscar" name="keyword" required>
+			    <input type="text" class="form-control" placeholder="Buscar" name="keyword" required>
 			    
 			    <div class="input-group-append">
 			      <button class="btn btn-primary" type="submit">
@@ -77,6 +68,7 @@
 						<small class="title text-muted">Bienvenido {{user.first_name}}!</small>
 						<div>
 							<a href="{% url 'dashboard' %}">Dashboard</a> <span class="dark-transp"> | </span>
+							{% if user.is_superadmin or user.roles.all %}<a href="{% url 'admin_dashboard' %}" style="color: #39B54A; font-weight:600;">Panel Admin</a> <span class="dark-transp"> | </span>{% endif %}
 							<a href="{% url 'logout' %}">Cerrar Sesión</a>
 						</div>
 					</div>

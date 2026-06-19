@@ -1,0 +1,25 @@
+{
+  "module": "products",
+  "title": "Productos",
+  "permission": "view_inventory",
+  "questions": [
+    "como crear producto",
+    "crear producto",
+    "nuevo producto",
+    "agregar producto",
+    "modificar producto",
+    "inventario",
+    "stock"
+  ],
+  "answer": "El módulo de Productos te permite mantener el catálogo de la tienda siempre actualizado.\n\nPara crear un producto:\n1. Dirígete a la sección **Productos** en el menú lateral.\n2. Haz clic en el botón para agregar un nuevo producto.\n3. Llena los detalles como nombre, precio, stock inicial y sube una imagen.\n4. Guarda los cambios.\n\nTambién puedes editar, eliminar o generar reportes PDF del inventario desde esta misma sección.",
+  "keywords": [
+    "inventario",
+    "producto",
+    "nuevo",
+    "modificar",
+    "como",
+    "agregar",
+    "stock",
+    "crear"
+  ]
+}

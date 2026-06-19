@@ -1,0 +1,204 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Pedido - IAA Store</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f6f9fc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #3c4257; -webkit-font-smoothing: antialiased; }
+        table { border-spacing: 0; }
+        td { padding: 0; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f6f9fc; padding-top: 40px; padding-bottom: 40px; }
+        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e3e8ee; overflow: hidden; }
+        .header { padding: 35px 40px 15px 40px; text-align: left; }
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #1a1f36; text-decoration: none; margin: 0; }
+        .logo span { color: #39B54A; }
+        .content { padding: 20px 40px 40px 40px; font-size: 15px; line-height: 24px; }
+        h1 { font-size: 20px; color: #1a1f36; font-weight: 600; margin-top: 0; margin-bottom: 20px; }
+        p { margin-top: 0; margin-bottom: 16px; color: #525f7f; }
+        
+        .order-info { background-color: #f9fafb; border-radius: 6px; border: 1px solid #e3e8ee; margin-bottom: 24px; }
+        .order-info td { padding: 20px; }
+        .info-label { color: #8792a2; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .info-value { color: #1a1f36; font-weight: 600; font-size: 15px; }
+        
+        .status-box { padding: 12px 16px; border-radius: 6px; font-size: 14px; margin-bottom: 24px; font-weight: 500; }
+        .status-pending { background-color: #fdfbf7; color: #a36500; border: 1px solid #f6e0b5; }
+        .status-confirmed { background-color: #f3faf4; color: #18793b; border: 1px solid #c9e8d3; }
+        
+        .items-table { width: 100%; margin-bottom: 24px; }
+        .items-table th { padding: 12px 0; border-bottom: 1px solid #e3e8ee; color: #8792a2; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
+        .items-table td { padding: 16px 0; border-bottom: 1px solid #e3e8ee; color: #3c4257; }
+        
+        .totals-wrapper { width: 100%; margin-bottom: 24px; }
+        .totals-table { width: 280px; float: right; }
+        .totals-table td { padding: 6px 0; color: #525f7f; font-size: 14px; }
+        .totals-table .total-label { text-align: left; }
+        .totals-table .total-value { text-align: right; font-weight: 500; color: #1a1f36; }
+        .totals-table .discount { color: #39B54A; }
+        .totals-table .grand-total td { padding-top: 12px; margin-top: 12px; border-top: 2px solid #e3e8ee; font-weight: 600; font-size: 18px; color: #1a1f36; }
+        
+        .referral-box { background-color: #f6f9fc; border: 1px solid #e3e8ee; border-radius: 8px; padding: 24px; text-align: center; margin-top: 30px; }
+        .referral-code { display: inline-block; background-color: #ffffff; border: 1px solid #e3e8ee; padding: 10px 24px; font-size: 18px; font-weight: bold; color: #1a1f36; letter-spacing: 2px; border-radius: 6px; margin: 15px 0; }
+        
+        .footer { max-width: 600px; margin: 0 auto; padding: 30px 40px; text-align: left; color: #8792a2; font-size: 13px; line-height: 20px; }
+        .footer a { color: #8792a2; text-decoration: underline; }
+        .clear { clear: both; }
+        .divider { border-top: 1px solid #e3e8ee; margin: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <center>
+            <table class="main" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td class="header">
+                        <div class="logo">IAA<span>STORE</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="content">
+                        <h1>Confirmación de pedido</h1>
+                        <p>Hola {{ user.first_name }},</p>
+                        <p>¡Gracias por tu compra! Hemos recibido tu pedido y ya estamos trabajando en él. A continuación, encontrarás los detalles de tu transacción.</p>
+                        
+                        <table class="order-info" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <td>
+                                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                                        <tr>
+                                            <td width="50%" valign="top" style="padding-bottom: 16px;">
+                                                <div class="info-label">Número de Orden</div>
+                                                <div class="info-value">#{{ order.order_number }}</div>
+                                            </td>
+                                            <td width="50%" valign="top" style="padding-bottom: 16px;">
+                                                <div class="info-label">Fecha</div>
+                                                <div class="info-value">{{ order.created_at|date:"d/m/Y H:i" }}</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="50%" valign="top">
+                                                <div class="info-label">Método de Pago</div>
+                                                <div class="info-value">{{ order.payment.payment_method }}</div>
+                                            </td>
+                                            <td width="50%" valign="top">
+                                                <div class="info-label">Estado</div>
+                                                <div class="info-value">{% if order.payment.payment_method == 'PayPal' %}<span style="color: #18793b;">Confirmado</span>{% else %}<span style="color: #a36500;">Pendiente de Verificación</span>{% endif %}</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="status-box {% if order.payment.payment_method == 'PayPal' %}status-confirmed{% else %}status-pending{% endif %}">
+                            {% if order.payment.payment_method == 'PayPal' %}
+                                ✔ Tu pago ha sido procesado automáticamente. Tu pedido está confirmado.
+                            {% elif order.payment.payment_method == 'Cashea' %}
+                                🕒 Pedido realizado con Cashea. Estamos verificando tu comprobante.
+                            {% elif order.payment.payment_method == 'Zelle' %}
+                                🕒 Pedido realizado con Zelle. Estamos verificando tu transferencia manual.
+                            {% elif order.payment.payment_method == 'Pago Móvil' %}
+                                🕒 Pedido realizado con Pago Móvil. Estamos verificando tu pago móvil.
+                            {% else %}
+                                ℹ Tu pedido ha sido recibido y está siendo procesado.
+                            {% endif %}
+                        </div>
+
+                        <h2 style="font-size: 16px; color: #1a1f36; margin-top: 30px; margin-bottom: 10px;">Resumen del pedido</h2>
+                        
+                        <table class="items-table" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <th>Producto</th>
+                                <th style="text-align: center; width: 60px;">Cant.</th>
+                                <th style="text-align: right; width: 100px;">Precio</th>
+                            </tr>
+                            {% for item in order.orderproduct_set.all %}
+                            <tr>
+                                <td><strong>{{ item.product.product_name }}</strong></td>
+                                <td style="text-align: center;">{{ item.quantity }}</td>
+                                <td style="text-align: right;">${{ item.product_price }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #8792a2; font-style: italic; padding: 20px 0;">Consulta los detalles completos en tu panel de usuario.</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+
+                        <div class="totals-wrapper">
+                            <table class="totals-table" cellpadding="0" cellspacing="0" role="presentation">
+                                {% if order.discount_amount > 0 %}
+                                <tr class="discount">
+                                    <td class="total-label">Descuento (Cupón):</td>
+                                    <td class="total-value discount">-${{ order.discount_amount }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.tax > 0 %}
+                                <tr>
+                                    <td class="total-label">IVA (16%):</td>
+                                    <td class="total-value">${{ order.tax }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.igtf_tax > 0 %}
+                                <tr>
+                                    <td class="total-label">IGTF (3%):</td>
+                                    <td class="total-value">${{ order.igtf_tax }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.payment_fee > 0 %}
+                                <tr>
+                                    <td class="total-label">Comisión {{ order.payment.payment_method }}:</td>
+                                    <td class="total-value">${{ order.payment_fee }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.shipping_cost > 0 %}
+                                <tr>
+                                    <td class="total-label">Costo de Envío:</td>
+                                    <td class="total-value">${{ order.shipping_cost }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr class="grand-total">
+                                    <td class="total-label" style="padding-top: 12px;">Total:</td>
+                                    <td class="total-value" style="padding-top: 12px;">${{ order.order_total }}</td>
+                                </tr>
+                            </table>
+                            <div class="clear"></div>
+                        </div>
+
+                        <div class="divider"></div>
+                        
+                        <p>Puedes hacer el seguimiento de tu envío y revisar tu historial de transacciones en cualquier momento desde tu panel: <strong>Mis Pedidos</strong>.</p>
+                        
+                        {% if user.referralprofile %}
+                        <div class="referral-box">
+                            <h3 style="color: #1a1f36; margin-top: 0; font-size: 16px;">¡Gana un 30% de Descuento!</h3>
+                            <p style="font-size: 14px; margin-bottom: 10px;">
+                                Invita a un amigo a registrarse usando tu código exclusivo. Si realiza una compra mayor a $500, <strong>¡ambos recibirán un cupón de 30% de descuento!</strong>
+                            </p>
+                            <div class="referral-code">{{ user.referralprofile.referral_code }}</div>
+                            <p style="font-size: 13px; color: #8792a2; margin-top: 0;">Comparte este enlace:<br> 
+                                <span style="color: #1a1f36; font-weight: 500; word-break: break-all;">http://127.0.0.1:8000/accounts/register/?ref={{ user.referralprofile.referral_code }}</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        
+                    </td>
+                </tr>
+            </table>
+            
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; margin: 0 auto;">
+                <tr>
+                    <td class="footer">
+                        <p style="margin-bottom: 5px;">&copy; 2026 IAA Store - Industrias de Aislantes y Acero, I.A.A. C.A.</p>
+                        <p style="margin-bottom: 5px;">Barcelona, Av. Fuerzas Armadas, Centro Industrial.</p>
+                        <p>¿Tienes dudas? Contáctanos: <a href="mailto:info@iaacaven.com">info@iaacaven.com</a> | 0424-882-4015</p>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+</body>
+</html>
+{% endautoescape %}

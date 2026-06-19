@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+<div class="container" style="min-height: 50vh; margin-top: 40px; margin-bottom: 40px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <i class="fas fa-check-circle" style="font-size: 100px; margin-bottom: 20px; color: #39B54A;"></i>
+            <h2 style="color: #1A3B57; font-weight: bold; margin-bottom: 25px;">Pedido realizado</h2>
+            
+            <div class="card shadow-sm" style="border: none; border-radius: 10px; background-color: #ffffff; padding: 30px;">
+                <div class="card-body">
+                    <h5 style="color: #1A3B57; font-weight: bold; margin-bottom: 20px;">Pedido #{{ order.order_number }}</h5>
+                    <p style="font-size: 18px; color: #444; line-height: 1.6; margin-bottom: 30px;">
+                        Su pago estará pendiente por comprobación. Se le enviará un correo electrónico y se actualizará el estado de su pedido en su panel de usuario cuando se haya completado la verificación y se haya aprobado el pago.
+                    </p>
+                    <a href="{% url 'store' %}" class="btn" style="background-color: #1A3B57; color: white; padding: 12px 35px; font-weight: bold; border-radius: 5px; font-size: 16px;">Volver a la Tienda</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}

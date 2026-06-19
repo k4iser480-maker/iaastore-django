@@ -1,95 +1,677 @@
 {% extends 'base.html' %}
-{% block content %}
-<section class="section-conten padding-y bg">
+{% load static %}
+{% load currency_tags %}
 
-{% include 'includes/alerts.html' %}
-<div class="container">
-	<div class="row">
-	<aside class="col-md-3">
-		<!--   SIDEBAR   -->
-		<ul class="list-group">
-			<a class="list-group-item active" href="#"> My order history </a>
-			<a class="list-group-item" href="#"> Transactions </a>
-			<a class="list-group-item" href="#"> Return and refunds </a>
-			<a class="list-group-item" href="#">Settings </a>
-			<a class="list-group-item" href="#"> My Selling Items </a>
-			<a class="list-group-item" href="#"> Received orders </a>
-		</ul>
-		<br>
-		<a class="btn btn-light btn-block" href="{% url 'logout' %}"> <i class="fa fa-power-off"></i> <span class="text">Log out</span> </a> 
-		<!--   SIDEBAR .//END   -->
-	</aside>
-	<main class="col-md-9">
-		<article class="card">
-		<header class="card-header">
-			<strong class="d-inline-block mr-3">Order ID: 6123456789</strong>
-			<span>Order Date: 16 December 2018</span>
-		</header>
-		<div class="card-body">
-			<div class="row"> 
-				<div class="col-md-8">
-					<h6 class="text-muted">Delivery to</h6>
-					<p>Michael Jackson <br>  
-					Phone +1234567890 Email: myname@pixsellz.com <br>
-			    	Location: Home number, Building name, Street 123,  Tashkent, UZB <br> 
-			    	P.O. Box: 100123
-			 		</p>
-				</div>
-				<div class="col-md-4">
-					<h6 class="text-muted">Payment</h6>
-					<span class="text-success">
-						<i class="fab fa-lg fa-cc-visa"></i>
-					    Visa  **** 4216  
-					</span>
-					<p>Subtotal: $356 <br>
-					 Shipping fee:  $56 <br> 
-					 <span class="b">Total:  $456 </span>
-					</p>
-				</div>
-			</div> <!-- row.// -->
-		</div> <!-- card-body .// -->
-		<div class="table-responsive">
-		<table class="table table-hover">
-			<tr>
-				<td width="65">
-					<img src="../images/items/1.jpg" class="img-xs border">
-				</td>
-				<td> 
-					<p class="title mb-0">Product name goes here </p>
-					<var class="price text-muted">USD 145</var>
-				</td>
-				<td> Seller <br> Nike clothing </td>
-				<td width="250"> <a href="#" class="btn btn-outline-primary">Track order</a> <a href="#" class="btn btn-light"> Details </a> </td>
-			</tr>
-			<tr>
-				<td>
-					<img src="../images/items/2.jpg" class="img-xs border">
-				</td>
-				<td> 
-					<p class="title mb-0">Another name goes here </p>
-					<var class="price text-muted">USD 15</var>
-				</td>
-				<td> Seller <br> ABC shop </td>
-				<td> <a href="#" class="btn btn-outline-primary">Track order</a> <a href="#" class="btn btn-light"> Details </a> </td>
-			</tr>
-			<tr>
-				<td>
-					<img src="../images/items/3.jpg" class="img-xs border">
-				</td>
-				<td> 
-					<p class="title mb-0">The name of the product  goes here </p>
-					<var class="price text-muted">USD 145</var>
-				</td>
-				<td> Seller <br> Wallmart </td>
-				<td> <a href="#" class="btn btn-outline-primary">Track order</a> <a href="#" class="btn btn-light"> Details </a> </td>
-			</tr>
-		</table>
-		</div> <!-- table-responsive .end// -->
-		</article> <!-- order-group.// --> 
-	</main>
-</div> <!-- row.// -->
+{% block content %}
+<style>
+    /* ========================= DASHBOARD STYLES ========================= */
+    .dashboard-hero {
+        background: linear-gradient(135deg, #1A3B57 0%, #2a5a7e 50%, #1e4d6e 100%);
+        padding: 40px 0;
+        color: #fff;
+    }
+    .dashboard-hero .avatar-circle {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: rgba(57,181,74,0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: #fff;
+        border: 3px solid rgba(255,255,255,0.3);
+        text-transform: uppercase;
+    }
+    .dashboard-hero h2 {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: #ffffff;
+    }
+    .dashboard-hero p {
+        opacity: 0.8;
+        margin-bottom: 0;
+    }
+
+    /* --- Stat cards --- */
+    .stat-card {
+        background: #fff;
+        border: 1px solid #E0E0E0;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(26,59,87,0.12);
+        border-color: #39B54A;
+    }
+    .stat-card .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        font-size: 1.4rem;
+    }
+    .stat-card .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1A3B57;
+        font-family: 'Montserrat', sans-serif;
+    }
+    .stat-card .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    /* --- Sidebar nav --- */
+    .dash-sidebar .nav-link {
+        color: #1A3B57;
+        font-weight: 500;
+        padding: 12px 20px;
+        border-radius: 6px;
+        margin-bottom: 4px;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+    }
+    .dash-sidebar .nav-link i {
+        width: 28px;
+        text-align: center;
+        margin-right: 10px;
+        font-size: 1.05rem;
+    }
+    .dash-sidebar .nav-link:hover,
+    .dash-sidebar .nav-link.active {
+        background: rgba(57,181,74,0.1);
+        color: #39B54A;
+    }
+    .dash-sidebar .nav-link.active {
+        font-weight: 600;
+        border-left: 3px solid #39B54A;
+    }
+    .dash-sidebar .nav-link.text-danger:hover {
+        background: rgba(220,53,69,0.1);
+        color: #dc3545 !important;
+    }
+
+    /* --- Content cards --- */
+    .dash-card {
+        background: #fff;
+        border: 1px solid #E0E0E0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .dash-card .dash-card-header {
+        background: #f8f9fa;
+        padding: 16px 24px;
+        border-bottom: 1px solid #E0E0E0;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        color: #1A3B57;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .dash-card .dash-card-body {
+        padding: 24px;
+    }
+
+    /* --- Order table --- */
+    .order-table th {
+        background: #f8f9fa;
+        color: #1A3B57;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #E0E0E0;
+    }
+    .order-table td {
+        vertical-align: middle;
+        color: #333;
+    }
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .badge-new { background: #e3f2fd; color: #1565c0; }
+    .badge-accepted { background: #fff3e0; color: #e65100; }
+    .badge-completed { background: #e8f5e9; color: #2e7d32; }
+    .badge-cancelled { background: #fce4ec; color: #c62828; }
+    .badge-asignado { background: #f3e5f5; color: #7b1fa2; }
+    .badge-en-camino { background: #fff3e0; color: #e65100; }
+    .badge-entregado { background: #e0f2f1; color: #00796b; }
+    .badge-procesando { background: #e3f2fd; color: #1565c0; }
+
+    /* --- Review cards --- */
+    .review-card {
+        border: 1px solid #E0E0E0;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.25s ease;
+    }
+    .review-card:hover {
+        border-color: #39B54A;
+        box-shadow: 0 2px 10px rgba(57,181,74,0.1);
+    }
+
+    /* --- Profile form --- */
+    .profile-form .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 10px 14px;
+        transition: border-color 0.25s ease;
+    }
+    .profile-form .form-control:focus {
+        border-color: #39B54A;
+        box-shadow: 0 0 0 0.2rem rgba(57,181,74,0.15);
+    }
+    .profile-form label {
+        color: #1A3B57;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+
+    /* --- Tab pane transitions --- */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- Responsive --- */
+    @media (max-width: 767px) {
+        .dashboard-hero { padding: 24px 0; text-align: center; }
+        .dashboard-hero .d-flex { flex-direction: column; align-items: center !important; }
+        .dashboard-hero .avatar-circle { margin-bottom: 12px !important; }
+        .stat-card { margin-bottom: 12px; }
+    }
+</style>
+
+<!-- ========================= DASHBOARD HERO ========================= -->
+<div class="dashboard-hero">
+    <div class="container">
+        <div class="d-flex align-items-center">
+            <div class="avatar-circle mr-4">
+                {{ user.first_name|first }}{{ user.last_name|first }}
+            </div>
+            <div>
+                <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+                <p><i class="fas fa-envelope mr-1"></i> {{ user.email }}</p>
+                <p><i class="fas fa-calendar-alt mr-1"></i> Miembro desde {{ user.date_joined|date:"d M Y" }}</p>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- ========================= STATS SECTION ========================= -->
+<section style="background: #f5f5f5; margin-top: -1px;">
+<div class="container" style="margin-top: -30px;">
+    <div class="row">
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(26,59,87,0.1); color: #1A3B57;">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="stat-number">{{ total_orders }}</div>
+                <div class="stat-label">Total Pedidos</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(57,181,74,0.1); color: #39B54A;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">{{ completed_orders }}</div>
+                <div class="stat-label">Completados</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255,193,7,0.15); color: #ffc107;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">{{ pending_orders }}</div>
+                <div class="stat-label">En Proceso</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255,211,51,0.15); color: #FFD333;">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-number">{{ total_reviews }}</div>
+                <div class="stat-label">Reseñas</div>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- ========================= MAIN CONTENT ========================= -->
+<div class="container pb-5 pt-3">
+
+    {% include 'includes/alerts.html' %}
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="dash-card">
+                <div class="dash-card-body p-3 dash-sidebar">
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#" data-tab="orders"><i class="fas fa-shopping-bag"></i> Mis Pedidos</a>
+                        <a class="nav-link" href="#" data-tab="addresses"><i class="fas fa-map-marker-alt"></i> Direcciones de Envío</a>
+                        <a class="nav-link" href="#" data-tab="profile"><i class="fas fa-user-edit"></i> Mi Perfil</a>
+                        <a class="nav-link" href="#" data-tab="wishlist"><i class="fas fa-heart"></i> Lista de Deseos</a>
+                        <a class="nav-link" href="#" data-tab="reviews"><i class="fas fa-star"></i> Mis Reseñas</a>
+                        <a class="nav-link" href="#" data-tab="security"><i class="fas fa-shield-alt"></i> Seguridad</a>
+                        <hr class="my-2">
+                        <a class="nav-link text-danger" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Currency Preferences -->
+            <div class="dash-card mt-3">
+                <div class="dash-card-header" style="font-size: 0.9rem;">
+                    <span><i class="fas fa-money-bill-wave mr-2"></i> Moneda Preferida</span>
+                </div>
+                <div class="dash-card-body p-3">
+                    <form action="{% url 'set_currency' %}" method="GET">
+                        <select name="currency" class="form-control mb-2" onchange="this.form.submit()" style="font-size: 0.9rem;">
+                            <option value="USD" {% if request.session.currency != 'VES' %}selected{% endif %}>Dólares (USD)</option>
+                            <option value="VES" {% if request.session.currency == 'VES' %}selected{% endif %}>Bolívares (VES)</option>
+                        </select>
+                        <small class="text-muted" style="font-size: 0.75rem;">Esta moneda se aplicará a todo tu proceso de compra.</small>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-lg-9 col-md-8">
+
+            <!-- ===== TAB: Orders ===== -->
+            <div class="tab-pane active" id="tab-orders">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span><i class="fas fa-shopping-bag mr-2"></i> Historial de Pedidos</span>
+                        <span class="badge badge-pill" style="background: #1A3B57; color: #fff;">{{ total_orders }}</span>
+                    </div>
+                    <div class="dash-card-body p-0">
+                        {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table order-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>N° Pedido</th>
+                                        <th>Fecha</th>
+                                        <th>Total</th>
+                                        <th>Método</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td><strong>#{{ order.order_number }}</strong></td>
+                                        <td>{{ order.created_at|date:"d/m/Y" }}</td>
+                                        <td style="color: #39B54A; font-weight: 600;">
+                                            {{ order.order_total|format_price:request }}
+                                            {% if request.session.currency != 'VES' %}
+                                            <br><small class="text-muted" style="font-weight: 400;">{{ order.order_total|format_price_bs }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.payment %}
+                                                {{ order.payment.payment_method }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge-status
+                                                {% if order.status == 'New' %}badge-new
+                                                {% elif order.status == 'Accepted' %}badge-accepted
+                                                {% elif order.status == 'Completed' %}badge-completed
+                                                {% elif order.status == 'Cancelled' %}badge-cancelled
+                                                {% elif order.status == 'Assigned' %}badge-asignado
+                                                {% elif order.status == 'In Transit' %}badge-en-camino
+                                                {% elif order.status == 'Delivered' %}badge-entregado
+                                                {% elif order.status == 'Processing' %}badge-procesando
+                                                {% endif %}">
+                                                {% if order.status == 'New' %}Nuevo
+                                                {% elif order.status == 'Accepted' %}Aceptado
+                                                {% elif order.status == 'Completed' %}Completado
+                                                {% elif order.status == 'Cancelled' %}Cancelado
+                                                {% elif order.status == 'Assigned' %}Asignado
+                                                {% elif order.status == 'In Transit' %}En camino
+                                                {% elif order.status == 'Delivered' %}Entregado
+                                                {% elif order.status == 'Processing' %}Procesando
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'order_detail' order.order_number %}" class="btn btn-sm mb-1" style="background: #1A3B57; color: #fff; border-radius: 20px; padding: 4px 16px; font-size: 0.8rem;">
+                                                <i class="fas fa-eye mr-1"></i> Ver
+                                            </a>
+                                            {% if order.status == 'Delivered' %}
+                                            <form method="POST" action="{% url 'confirm_delivery' order.order_number %}" style="display:inline-block;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" style="border-radius: 20px; padding: 4px 16px; font-size: 0.8rem;" onclick="return confirm('¿Confirma que ha recibido su pedido?');">
+                                                    <i class="fas fa-check mr-1"></i> Confirmar
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-bag mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mb-3">Aún no has realizado ningún pedido.</p>
+                            <a href="{% url 'store' %}" class="btn" style="background: #39B54A; color: #fff; border-radius: 20px; padding: 8px 24px;">
+                                <i class="fas fa-store mr-1"></i> Explorar Tienda
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: Profile ===== -->
+            <div class="tab-pane" id="tab-profile">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span><i class="fas fa-user-edit mr-2"></i> Editar Perfil</span>
+                    </div>
+                    <div class="dash-card-body">
+                        <form method="POST" action="{% url 'edit_profile' %}" class="profile-form">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name">Nombre</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name">Apellido</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email">Correo Electrónico</label>
+                                    <input type="email" class="form-control" id="email" value="{{ user.email }}" disabled style="background: #f0f0f0;">
+                                    <small class="text-muted">El correo no se puede cambiar.</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone_number">Teléfono</label>
+                                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number }}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn mt-2" style="background: #39B54A; color: #fff; padding: 10px 32px; border-radius: 6px; font-weight: 600;">
+                                <i class="fas fa-save mr-1"></i> Guardar Cambios
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <!-- ===== TAB: Addresses ===== -->
+            <div class="tab-pane {% if active_tab == 'addresses' %}active{% endif %}" id="tab-addresses">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span><i class="fas fa-map-marker-alt mr-2"></i> Mis Direcciones de Envío</span>
+                        <a href="{% url 'add_shipping_address' %}" class="btn btn-sm" style="background: #39B54A; color: #fff; font-weight: 600;"><i class="fas fa-plus"></i> Nueva Dirección</a>
+                    </div>
+                    <div class="dash-card-body">
+                        {% if shipping_addresses %}
+                            <div class="row">
+                                {% for address in shipping_addresses %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card" style="border: 1px solid {% if address.is_default %}#39B54A{% else %}#E0E0E0{% endif %}; border-radius: 8px;">
+                                        <div class="card-body">
+                                            <h5 class="card-title" style="font-size: 1rem; color: #1A3B57; font-weight: 600;">
+                                                {{ address.first_name }} {{ address.last_name }}
+                                                {% if address.is_default %}
+                                                <span class="badge badge-success float-right" style="font-size: 0.7rem;">Predeterminada</span>
+                                                {% endif %}
+                                            </h5>
+                                            <p class="card-text mb-1" style="font-size: 0.9rem; color: #666;">
+                                                <i class="fas fa-phone mr-1" style="width: 16px;"></i> {{ address.phone }}
+                                            </p>
+                                            <p class="card-text mb-1" style="font-size: 0.9rem; color: #666;">
+                                                <i class="fas fa-map-marker-alt mr-1" style="width: 16px;"></i> {{ address.address_line_1 }}
+                                                {% if address.address_line_2 %}<br><span style="padding-left: 20px;">{{ address.address_line_2 }}</span>{% endif %}
+                                                <br><span style="padding-left: 20px;">{{ address.city }}, {{ address.state }}</span>
+                                            </p>
+                                            <div class="mt-3 pt-2" style="border-top: 1px solid #eee;">
+                                                <a href="{% url 'edit_shipping_address' address.id %}" class="btn btn-sm btn-outline-primary mr-1" style="font-size: 0.8rem;">Editar</a>
+                                                <a href="{% url 'delete_shipping_address' address.id %}" class="btn btn-sm btn-outline-danger mr-1" style="font-size: 0.8rem;" onclick="return confirm('¿Estás seguro de eliminar esta dirección?');">Eliminar</a>
+                                                {% if not address.is_default %}
+                                                <a href="{% url 'set_default_shipping_address' address.id %}" class="btn btn-sm btn-link" style="font-size: 0.8rem; color: #1A3B57;">Hacer predeterminada</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-map-marker-alt mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                                <h5 style="color: #666;">No tienes direcciones guardadas</h5>
+                                <p class="text-muted">Agrega una dirección para facilitar tus futuras compras con envío a domicilio.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: Reviews ===== -->
+            <div class="tab-pane" id="tab-reviews">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span><i class="fas fa-star mr-2"></i> Mis Reseñas</span>
+                        <span class="badge badge-pill" style="background: #FFD333; color: #1A3B57;">{{ total_reviews }}</span>
+                    </div>
+                    <div class="dash-card-body">
+                        {% if reviews %}
+                            {% for review in reviews %}
+                            <div class="review-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex align-items-start">
+                                        {% if review.product.images %}
+                                        <img src="{{ review.product.images.url }}" alt="{{ review.product.product_name }}" style="width: 60px; height: 60px; object-fit: contain; border: 1px solid #eee; border-radius: 6px; margin-right: 14px;">
+                                        {% endif %}
+                                        <div>
+                                            <a href="{{ review.product.get_url }}" style="color: #1A3B57; font-weight: 600; text-decoration: none;">{{ review.product.product_name }}</a>
+                                            <div class="mt-1" style="color: #FFD333;">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <i class="fas fa-star" style="font-size: 0.85rem;"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star" style="font-size: 0.85rem;"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <p class="mb-0 mt-1" style="color: #333; font-size: 0.9rem;"><b>{{ review.subject }}</b></p>
+                                            <p class="mb-0 mt-1" style="color: #666; font-size: 0.85rem;">{{ review.review }}</p>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted text-nowrap ml-3">{{ review.created_at|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-star mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mb-3">Aún no has dejado ninguna reseña.</p>
+                            <a href="{% url 'store' %}" class="btn" style="background: #39B54A; color: #fff; border-radius: 20px; padding: 8px 24px;">
+                                <i class="fas fa-store mr-1"></i> Explorar Productos
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: Wishlist ===== -->
+            <div class="tab-pane" id="tab-wishlist">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span><i class="fas fa-heart mr-2"></i> Mi Lista de Deseos</span>
+                        <span class="badge badge-pill" style="background: #e74c3c; color: #fff;">{{ wishlist_items|length }}</span>
+                    </div>
+                    <div class="dash-card-body">
+                        {% if wishlist_items %}
+                            {% for item in wishlist_items %}
+                            <div class="review-card d-flex align-items-center">
+                                {% if item.product.images %}
+                                <img src="{{ item.product.images.url }}" alt="{{ item.product.product_name }}" style="width: 75px; height: 75px; object-fit: contain; border: 1px solid #eee; border-radius: 6px; margin-right: 16px;">
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <a href="{{ item.product.get_url }}" style="color: #1A3B57; font-weight: 600; text-decoration: none; font-size: 1rem;">{{ item.product.product_name }}</a>
+                                    <div class="mt-1">
+                                        <span style="color: #39B54A; font-weight: 700; font-size: 1.05rem;">${{ item.product.price }}</span>
+                                        {% if item.product.stock > 0 %}
+                                        <span class="badge ml-2" style="background: #e8f5e9; color: #2e7d32; font-size: 0.75rem;">En stock</span>
+                                        {% else %}
+                                        <span class="badge ml-2" style="background: #fce4ec; color: #c62828; font-size: 0.75rem;">Agotado</span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">Agregado el {{ item.created_at|date:"d/m/Y" }}</small>
+                                </div>
+                                <div class="d-flex flex-column align-items-end ml-3">
+                                    {% if item.product.stock > 0 %}
+                                    <a href="{% url 'add_cart' item.product.id %}" class="btn btn-sm mb-2" style="background: #39B54A; color: #fff; border-radius: 20px; padding: 4px 14px; font-size: 0.8rem;">
+                                        <i class="fas fa-shopping-cart mr-1"></i> Agregar
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'remove_wishlist' item.product.id %}" class="btn btn-sm" style="background: #f0f0f0; color: #999; border-radius: 20px; padding: 4px 14px; font-size: 0.8rem;">
+                                        <i class="fas fa-trash-alt mr-1"></i> Quitar
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-heart mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mb-3">Tu lista de deseos está vacía.</p>
+                            <a href="{% url 'store' %}" class="btn" style="background: #39B54A; color: #fff; border-radius: 20px; padding: 8px 24px;">
+                                <i class="fas fa-store mr-1"></i> Explorar Productos
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: Security ===== -->
+            <div class="tab-pane" id="tab-security">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span><i class="fas fa-shield-alt mr-2"></i> Cambiar Contraseña</span>
+                    </div>
+                    <div class="dash-card-body">
+                        <form method="POST" action="{% url 'change_password' %}" class="profile-form">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="current_password">Contraseña Actual</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text toggle-password" data-target="#current_password" style="cursor: pointer;">
+                                                    <i class="fa fa-eye" style="color: #6c757d;"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_password">Nueva Contraseña</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text toggle-password" data-target="#new_password" style="cursor: pointer;">
+                                                    <i class="fa fa-eye" style="color: #6c757d;"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirm_password">Confirmar Nueva Contraseña</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text toggle-password" data-target="#confirm_password" style="cursor: pointer;">
+                                                    <i class="fa fa-eye" style="color: #6c757d;"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn mt-2" style="background: #1A3B57; color: #fff; padding: 10px 32px; border-radius: 6px; font-weight: 600;">
+                                        <i class="fas fa-lock mr-1"></i> Actualizar Contraseña
+                                    </button>
+                                </div>
+                                <div class="col-md-4 d-none d-md-flex align-items-center justify-content-center">
+                                    <div class="text-center" style="color: #ccc;">
+                                        <i class="fas fa-user-shield" style="font-size: 5rem;"></i>
+                                        <p class="mt-3 text-muted" style="font-size: 0.85rem;">Mantén tu cuenta segura con una contraseña fuerte.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarLinks = document.querySelectorAll('.dash-sidebar .nav-link[data-tab]');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tabId = this.getAttribute('data-tab');
+
+            // Update sidebar active
+            sidebarLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+
+            // Show corresponding pane
+            tabPanes.forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            // Update hash for bookmark-ability
+            history.replaceState(null, null, '#' + tabId);
+        });
+    });
+
+    // Handle hash on load
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+        const targetLink = document.querySelector('.dash-sidebar .nav-link[data-tab="' + hash + '"]');
+        if (targetLink) targetLink.click();
+    }
+});
+</script>
+
 {% endblock %}

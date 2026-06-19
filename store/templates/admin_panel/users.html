@@ -1,0 +1,174 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load rbac_tags %}
+
+{% block breadcrumb %}<span class="sep">›</span> Usuarios{% endblock %}
+{% block page_title %}Gestión de Usuarios{% endblock %}
+{% block page_desc %}Administra las cuentas de usuario y asigna roles.{% endblock %}
+
+{% block content %}
+<div class="ap-toolbar" style="flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px;">
+    <!-- Búsqueda -->
+    <div class="ap-search-wrap" style="flex: 1; min-width: 250px;">
+        <i class="fas fa-search"></i>
+        <input type="text" class="ap-input" id="userSearch" placeholder="Buscar por Nombre, Apellido o Email...">
+    </div>
+
+    <!-- Filtros -->
+    <select class="ap-select" id="roleFilter">
+        <option value="">Todos los Roles</option>
+        <option value="Super Admin">Super Admin</option>
+        <option value="Cliente">Cliente</option>
+        {% for r in roles_list %}
+        <option value="{{ r.name }}">{{ r.name }}</option>
+        {% endfor %}
+    </select>
+    
+    <select class="ap-select" id="statusFilter">
+        <option value="">Todos los Estados</option>
+        <option value="Activo">Activo</option>
+        <option value="Inactivo">Inactivo</option>
+    </select>
+
+    <div style="display: flex; gap: 8px; margin-left: auto;">
+        <button class="ap-btn" onclick="exportUsersPDF()" style="background: #ef4444; color: #fff; border: none;" title="Exportar a PDF">
+            <i class="fas fa-file-pdf"></i> Exportar
+        </button>
+        {% if user|can:'create_users' or user.is_superadmin %}
+        <a href="{% url 'admin_create_user' %}" class="ap-btn ap-btn-primary">
+            <i class="fas fa-plus"></i> Nuevo
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="ap-card">
+    <div class="ap-card-body p-0">
+        <div style="overflow-x: auto;">
+            <table class="ap-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Estado</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr data-name="{{ u.first_name|lower }} {{ u.last_name|lower }}" data-email="{{ u.email|lower }}" data-role="{% if u.is_superadmin %}Super Admin{% elif u.roles.all %}{% for r in u.roles.all %}{{ r.name }}{% if not forloop.last %},{% endif %}{% endfor %}{% else %}Cliente{% endif %}" data-status="{% if u.is_active %}Activo{% else %}Inactivo{% endif %}">
+                        <td>
+                            <div class="ap-user-cell">
+                                {% if u.profile_picture %}
+                                <img src="{{ u.profile_picture.url }}" class="ap-avatar" style="object-fit: cover;">
+                                {% else %}
+                                <div class="ap-avatar blue">{{ u.first_name|first }}{{ u.last_name|first }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="ap-user-name">{{ u.first_name }} {{ u.last_name }}</div>
+                                    <div class="ap-user-email">@{{ u.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            {% if u.is_superadmin %}
+                                <span class="ap-badge ap-badge-purple"><span class="dot"></span> Super Admin</span>
+                            {% elif u.roles.all %}
+                                {% for r in u.roles.all %}
+                                <span class="ap-badge ap-badge-blue" style="margin-bottom: 4px;"><span class="dot"></span> {{ r.name }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="ap-badge ap-badge-gray"><span class="dot"></span> Cliente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="ap-badge ap-badge-green"><span class="dot"></span> Activo</span>
+                            {% else %}
+                                <span class="ap-badge ap-badge-red"><span class="dot"></span> Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                {% if user|can:'edit_users' or user.is_superadmin %}
+                                <a href="{% url 'admin_edit_user' u.id %}" class="ap-btn-icon" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
+                                
+
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px;">
+                            No hay usuarios.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const usearch = document.getElementById('userSearch');
+const roleFilter = document.getElementById('roleFilter');
+const statusFilter = document.getElementById('statusFilter');
+const urows = document.querySelectorAll('.ap-table tbody tr');
+
+function filterUsers() {
+    const q = usearch.value.toLowerCase();
+    const r = roleFilter.value;
+    const s = statusFilter.value;
+
+    urows.forEach(row => {
+        // Skip empty message row
+        if (row.children.length === 1) return;
+        
+        const name = row.dataset.name || '';
+        const email = row.dataset.email || '';
+        const role = row.dataset.role || '';
+        const status = row.dataset.status || '';
+
+        const matchSearch = !q || name.includes(q) || email.includes(q);
+        const matchRole = !r || role.includes(r);
+        const matchStatus = !s || status === s;
+
+        row.style.display = (matchSearch && matchRole && matchStatus) ? '' : 'none';
+    });
+}
+
+if (usearch) usearch.addEventListener('input', filterUsers);
+if (roleFilter) roleFilter.addEventListener('change', filterUsers);
+if (statusFilter) statusFilter.addEventListener('change', filterUsers);
+
+function exportUsersPDF() {
+    const d = new Date().toLocaleDateString('es-ES');
+    let filters = [];
+    if (usearch && usearch.value) filters.push(`Búsqueda: "${usearch.value}"`);
+    if (roleFilter && roleFilter.value) filters.push(`Rol: ${roleFilter.options[roleFilter.selectedIndex].text}`);
+    if (statusFilter && statusFilter.value) filters.push(`Estado: ${statusFilter.options[statusFilter.selectedIndex].text}`);
+    
+    const meta = {
+        user: "{{ user.first_name|default:user.username }} {{ user.last_name }}",
+        date: d,
+        filters: filters.length > 0 ? filters.join(" | ") : "Ninguno"
+    };
+    
+    // table id is missing, let's assign one to table or use querySelector
+    // I will add ID to table in the next chunk, wait I can just use querySelector
+    // Actually I can pass table ID 'usersTable' if I add it. But let's assume I add it.
+    if (typeof exportTableToPDF === 'function') {
+        exportTableToPDF('usersTable', 'Reporte de Usuarios', 'usuarios.pdf', meta, [4]); // Acciones is index 4
+    } else {
+        alert('La función de exportación no está disponible.');
+    }
+}
+</script>
+{% endblock %}

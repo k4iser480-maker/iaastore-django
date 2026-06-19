@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from .models import Account
-from .forms import RegistrationForm
+from .models import Account, ShippingAddress, ReferralProfile, Referral
+from .forms import RegistrationForm, ShippingAddressForm
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -14,6 +14,8 @@ from django.core.mail import EmailMessage
 from carts.views import _cart_id
 from carts.models import Cart, CartItem
 import requests
+import random
+import string
 
 @never_cache
 def register(request):
@@ -27,6 +29,24 @@ def register(request):
             username = email.split("@")[0]
             user = Account.objects.create_user(first_name=first_name, last_name=last_name, email=email, username=username, password=password)
             user.save()
+            
+            # Create ReferralProfile
+            base_ref_code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            ReferralProfile.objects.create(user=user, referral_code=base_ref_code)
+
+            # Process Referral if referred
+            ref_code = request.session.get('ref_code')
+            if ref_code:
+                try:
+                    referrer_profile = ReferralProfile.objects.get(referral_code=ref_code)
+                    Referral.objects.create(
+                        referrer=referrer_profile.user,
+                        referred=user
+                    )
+                except ReferralProfile.DoesNotExist:
+                    pass
+                # Clear from session
+                del request.session['ref_code']
 
 #user activation
             current_site = get_current_site(request)
@@ -47,6 +67,12 @@ def register(request):
 
 @never_cache
 def login(request):
+    # If user is already authenticated, redirect immediately
+    if request.user.is_authenticated:
+        if request.user.is_transportista:
+            return redirect('transportista:transportista_dashboard')
+        return redirect('dashboard')
+
     if request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
@@ -81,6 +107,12 @@ def login(request):
             except:
                 pass
             auth.login(request, user)
+
+            # Transportistas: redirect directly to their dashboard, ignore ?next
+            if user.is_transportista:
+                messages.success(request, 'Has iniciado sesión.')
+                return redirect('transportista:transportista_dashboard')
+
             messages.success(request, 'Has iniciado sesion.')
             url = request.META.get('HTTP_REFERER')
             try:
@@ -146,7 +178,137 @@ def activate(request, uidb64, token):
 
 @login_required(login_url='login')
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    from orders.models import Order, OrderProduct
+    from store.models import ReviewRating, Wishlist
+
+    orders = Order.objects.filter(user=request.user).exclude(payment_status='pending').order_by('-created_at')
+    reviews = ReviewRating.objects.filter(user=request.user).select_related('product').order_by('-created_at')
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related('product').order_by('-created_at')
+
+    total_orders = orders.count()
+    completed_orders = orders.filter(status='Completed').count()
+    pending_orders = orders.filter(status__in=['New', 'Processing']).count()
+    total_reviews = reviews.count()
+    
+    shipping_addresses = ShippingAddress.objects.filter(user=request.user).order_by('-is_default', '-created_at')
+
+    context = {
+        'orders': orders,
+        'reviews': reviews,
+        'wishlist_items': wishlist_items,
+        'total_orders': total_orders,
+        'completed_orders': completed_orders,
+        'pending_orders': pending_orders,
+        'total_reviews': total_reviews,
+        'shipping_addresses': shipping_addresses,
+    }
+    return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required(login_url='login')
+def edit_profile(request):
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.phone_number = request.POST.get('phone_number', user.phone_number)
+        user.save()
+        messages.success(request, 'Tu perfil ha sido actualizado correctamente.')
+        return redirect('dashboard')
+    return redirect('dashboard')
+
+
+@login_required(login_url='login')
+def change_password(request):
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        user = request.user
+
+        if not user.check_password(current_password):
+            messages.error(request, 'La contraseña actual es incorrecta.')
+            return redirect('dashboard')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Las contraseñas nuevas no coinciden.')
+            return redirect('dashboard')
+
+        if len(new_password) < 6:
+            messages.error(request, 'La contraseña debe tener al menos 6 caracteres.')
+            return redirect('dashboard')
+
+        user.set_password(new_password)
+        user.save()
+        auth.update_session_auth_hash(request, user)
+        messages.success(request, 'Tu contraseña ha sido actualizada correctamente.')
+        return redirect('dashboard')
+    return redirect('dashboard')
+
+
+@login_required(login_url='login')
+def order_detail(request, order_number):
+    from orders.models import Order, OrderProduct
+    from orders.services.delivery_service import DeliveryService
+
+    try:
+        order = Order.objects.get(order_number=order_number, user=request.user)
+        if order.payment_status == 'pending':
+            raise Order.DoesNotExist
+    except Order.DoesNotExist:
+        messages.error(request, 'Pedido no encontrado.')
+        return redirect('dashboard')
+
+    order_products = OrderProduct.objects.filter(order=order)
+
+    # Compute sub_total for each item
+    for item in order_products:
+        item.sub_total = item.quantity * item.product_price
+
+    subtotal = sum(item.sub_total for item in order_products)
+    
+    # Delivery Tracking
+    checkpoints = None
+    tracking_step = 0
+    city_lat = None
+    city_lng = None
+    
+    if order.is_delivery:
+        checkpoints = order.checkpoints.all()
+        tracking_step = DeliveryService.get_tracking_step(order)
+        city_coords = DeliveryService.get_city_coordinates(order.city)
+        city_lat = city_coords['lat']
+        city_lng = city_coords['lng']
+
+    context = {
+        'order': order,
+        'order_products': order_products,
+        'subtotal': subtotal,
+        'checkpoints': checkpoints,
+        'tracking_step': tracking_step,
+        'city_lat': city_lat,
+        'city_lng': city_lng,
+    }
+    return render(request, 'accounts/order_detail.html', context)
+@login_required(login_url='login')
+def confirm_delivery(request, order_number):
+    from orders.models import Order
+    if request.method == 'POST':
+        try:
+            order = Order.objects.get(order_number=order_number, user=request.user)
+            if order.payment_status == 'pending':
+                raise Order.DoesNotExist
+            if order.status == 'Delivered':
+                order.status = 'Completed'
+                order.save()
+                messages.success(request, '¡Has confirmado la recepción de tu pedido! Gracias por tu compra.')
+            else:
+                messages.error(request, 'El pedido no se encuentra en estado entregado.')
+        except Order.DoesNotExist:
+            messages.error(request, 'Pedido no encontrado.')
+            
+    return redirect('dashboard')
 
 def forgotPassword(request):
     if request.method == 'POST':
@@ -206,3 +368,54 @@ def resetPassword(request):
             return redirect('resetPassword')
     else:
         return render(request, 'accounts/resetPassword.html')
+
+@login_required(login_url='login')
+def shipping_addresses(request):
+    addresses = ShippingAddress.objects.filter(user=request.user).order_by('-is_default', '-created_at')
+    return render(request, 'accounts/dashboard.html', {'shipping_addresses': addresses, 'active_tab': 'addresses'})
+
+@login_required(login_url='login')
+def add_shipping_address(request):
+    if request.method == 'POST':
+        form = ShippingAddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            # Si es la primera dirección, establecerla como predeterminada
+            if ShippingAddress.objects.filter(user=request.user).count() == 0:
+                address.is_default = True
+            address.save()
+            messages.success(request, 'Dirección agregada correctamente.')
+            return redirect('dashboard')
+    else:
+        form = ShippingAddressForm()
+    return render(request, 'accounts/shipping_address_form.html', {'form': form, 'action': 'Crear'})
+
+@login_required(login_url='login')
+def edit_shipping_address(request, address_id):
+    address = get_object_or_404(ShippingAddress, id=address_id, user=request.user)
+    if request.method == 'POST':
+        form = ShippingAddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Dirección actualizada correctamente.')
+            return redirect('dashboard')
+    else:
+        form = ShippingAddressForm(instance=address)
+    return render(request, 'accounts/shipping_address_form.html', {'form': form, 'action': 'Editar'})
+
+@login_required(login_url='login')
+def delete_shipping_address(request, address_id):
+    address = get_object_or_404(ShippingAddress, id=address_id, user=request.user)
+    address.delete()
+    messages.success(request, 'Dirección eliminada correctamente.')
+    return redirect('dashboard')
+
+@login_required(login_url='login')
+def set_default_shipping_address(request, address_id):
+    address = get_object_or_404(ShippingAddress, id=address_id, user=request.user)
+    ShippingAddress.objects.filter(user=request.user).update(is_default=False)
+    address.is_default = True
+    address.save()
+    messages.success(request, 'Dirección predeterminada actualizada.')
+    return redirect('dashboard')

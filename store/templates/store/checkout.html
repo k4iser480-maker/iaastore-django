@@ -1,131 +1,553 @@
 {% extends "base.html" %}
 {% load static %}
+{% load currency_tags %}
 
 {% block content %}
 
 <section class="section-content padding-y bg">
 <div class="container">
 
-<!-- ============================ COMPONENT 1 ================================= -->
+<!-- ============================ CHECKOUT PAGE ================================= -->
 
 <div class="row">
-	<aside class="col-lg-6">
-<div class="card">
-  <div class="card-body">
-    <h4 class="card-title mb-4">Dirección de Facturación</h4>
-    <form action="" method="POST">
-        {% csrf_token %}
-        <div class="form-row">
-            <div class="col form-group">
-                <label>Nombre</label>
-                <input type="text" name="first_name" class="form-control" required>
-            </div>
-            <div class="col form-group">
-                <label>Apellido</label>
-                <input type="text" name="last_name" class="form-control" required>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="col form-group">
-                <label>Correo Electrónico</label>
-                <input type="email" name="email" class="form-control" required>
-            </div>
-            <div class="col form-group">
-                <label>Teléfono</label>
-                <input type="text" name="phone" class="form-control" required>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="col form-group">
-                <label>Dirección Linea 1</label>
-                <input type="text" name="address_line_1" class="form-control" required>
-            </div>
-            <div class="col form-group">
-                <label>Dirección Linea 2</label>
-                <input type="text" name="address_line_2" class="form-control">
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="col form-group">
-                <label>Ciudad</label>
-                <input type="text" name="city" class="form-control" required>
-            </div>
-            <div class="col form-group">
-                <label>Estado / Provincia</label>
-                <input type="text" name="state" class="form-control" required>
-            </div>
-            <div class="col form-group">
-                <label>País</label>
-                <input type="text" name="country" class="form-control" required>
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Nota del Pedido</label>
-            <textarea name="order_note" class="form-control" placeholder="Notas sobre tu pedido, por ejemplo indicaciones especiales para la entrega." rows="2"></textarea>
-        </div>
-    
-  </div>
-
-</div> <!-- card.// -->
-
-	</aside> <!-- col.// -->
-	<aside class="col-lg-6">
-
-		<div class="card mb-3">
-		<div class="card-body">
-			<h4 class="card-title mb-3">Resumen del Pedido</h4>
-			<table class="table table-borderless">
-				<thead>
-					<tr>
-						<th>Producto</th>
-						<th>Precio</th>
-						<th>Cantidad</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for cart_item in cart_items %}
-					<tr>
-						<td>
-							<img src="{{ cart_item.product.images.url }}" width="40" class="mr-2">
-							{{ cart_item.product.product_name }}
-						</td>
-						<td>${{ cart_item.product.price }}</td>
-						<td>{{ cart_item.quantity }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-			<hr>
-			<div class="d-flex justify-content-between">
-				<span>Subtotal:</span><span>${{ total }}</span>
-			</div>
-			<div class="d-flex justify-content-between">
-				<span>Impuesto (2%):</span><span>${{ tax }}</span>
-			</div>
-			<div class="d-flex justify-content-between font-weight-bold">
-				<span>Total:</span><span>${{ grand_total }}</span>
+	<!-- LEFT COLUMN: Billing Form -->
+	<aside class="col-lg-7">
+		<div class="card" style="border: none; border-radius: 12px; box-shadow: 0 2px 16px rgba(26,59,87,0.08);">
+			<div class="card-body" style="padding: 2rem;">
+				<h4 class="card-title mb-4" style="color: #1A3B57; font-weight: 700; border-bottom: 3px solid #39B54A; padding-bottom: 0.75rem;">
+					<i class="fas fa-map-marker-alt mr-2" style="color: #39B54A;"></i>Dirección de Facturación
+				</h4>
+				<form id="checkout-form">
+					{% csrf_token %}
+					
+					<h5 class="mb-3" style="color: #1A3B57; font-weight: 600; font-size: 1.1rem;">Datos Personales</h5>
+					<div class="form-row">
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Nombre</label>
+							<input type="text" name="first_name" class="form-control" required style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Apellido</label>
+							<input type="text" name="last_name" class="form-control" required style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Correo Electrónico</label>
+							<input type="email" name="email" class="form-control" required style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Teléfono</label>
+							<input type="text" name="phone" class="form-control" required style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Dirección Línea 1</label>
+							<input type="text" name="address_line_1" class="form-control" required style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Dirección Línea 2</label>
+							<input type="text" name="address_line_2" class="form-control" style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Ciudad</label>
+							<input type="text" name="city" class="form-control" required style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+						<div class="col form-group">
+							<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Estado / Provincia</label>
+							<input type="text" name="state" class="form-control" required style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s;">
+						</div>
+					</div>
+					<div class="form-group">
+						<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Nota del Pedido</label>
+						<textarea name="order_note" class="form-control" placeholder="Notas sobre tu pedido, por ejemplo indicaciones especiales para la entrega." rows="2" style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; transition: border-color 0.3s; resize: none;"></textarea>
+					</div>
+				</form>
+				
+				<!-- Delivery Switch (Outside Billing Form) -->
+				<div class="form-group mt-4" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e6ed; margin-bottom: 20px;">
+					<div class="custom-control custom-switch d-flex align-items-center justify-content-between" style="padding-left: 0;">
+						<label style="font-weight: 600; color: #1A3B57; font-size: 1rem; margin-bottom: 0; cursor: pointer;" for="deliverySwitch">
+							<i class="fas fa-truck mr-2" style="color: #39B54A;"></i> ¿Desea envío a domicilio (Delivery)?
+						</label>
+						<div class="custom-control custom-switch" style="padding-left: 2.5rem;">
+							<input type="checkbox" class="custom-control-input" id="deliverySwitch" name="is_delivery" checked>
+							<label class="custom-control-label" for="deliverySwitch" style="cursor: pointer;"></label>
+						</div>
+					</div>
+					
+					<!-- Address Selector -->
+					<div id="shipping-address-container" class="mt-3">
+						{% if request.user.is_authenticated %}
+							{% if shipping_addresses %}
+								<label style="font-weight: 600; color: #1A3B57; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Seleccione una dirección guardada</label>
+								<select name="shipping_address_id" id="shipping_address_id" class="form-control" style="border-radius: 8px; border: 1.5px solid #e0e6ed; padding: 0.6rem 1rem; height: auto;">
+									{% for address in shipping_addresses %}
+										<option value="{{ address.id }}" {% if address.is_default %}selected{% endif %}>
+											{{ address.first_name }} {{ address.last_name }} - {{ address.address_line_1 }}, {{ address.city }}
+										</option>
+									{% endfor %}
+								</select>
+								<div class="mt-2 text-right">
+									<a href="{% url 'dashboard' %}?tab=addresses" target="_blank" style="font-size: 0.85rem; color: #39B54A; font-weight: 500;"><i class="fas fa-cog"></i> Gestionar mis direcciones</a>
+								</div>
+							{% else %}
+								<div class="alert alert-warning mb-0" style="font-size: 0.9rem; border-radius: 8px;">
+									<i class="fas fa-exclamation-triangle mr-2"></i> No tienes direcciones de envío guardadas. 
+									<a href="{% url 'add_shipping_address' %}" target="_blank" class="alert-link">Haz clic aquí para agregar una</a> y recarga la página.
+								</div>
+							{% endif %}
+						{% else %}
+							<div class="alert alert-info mb-0" style="font-size: 0.9rem; border-radius: 8px;">
+								Para usar el envío a domicilio, debes <a href="{% url 'login' %}?next={% url 'checkout' %}" class="alert-link">iniciar sesión</a> y configurar una dirección.
+							</div>
+						{% endif %}
+					</div>
+				</div>
 			</div>
 		</div>
-		</div>
-
-		<div class="card">
-		<div class="card-body">
-			
-            <button type="submit" name="submit" class="btn btn-primary btn-block">Realizar Pedido</button>
-			<a href="{% url 'store' %}" class="btn btn-light btn-block">Seguir Comprando</a>
-        </form>
-        </div>
-		</div>
-
 	</aside>
 
+	<!-- RIGHT COLUMN: Order Summary + Payment -->
+	<aside class="col-lg-5">
+		<!-- Order Summary -->
+		<div class="card mb-3" style="border: none; border-radius: 12px; box-shadow: 0 2px 16px rgba(26,59,87,0.08);">
+			<div class="card-body" style="padding: 1.5rem 2rem;">
+				<h4 class="card-title mb-3" style="color: #1A3B57; font-weight: 700; border-bottom: 3px solid #39B54A; padding-bottom: 0.75rem;">
+					<i class="fas fa-shopping-bag mr-2" style="color: #39B54A;"></i>Resumen del Pedido
+				</h4>
 
+				{% for cart_item in cart_items %}
+				<div class="d-flex align-items-center py-2" style="border-bottom: 1px solid #f0f3f6;">
+					<img src="{{ cart_item.product.images.url }}" width="45" height="45" class="mr-3" style="border-radius: 8px; object-fit: cover; border: 1px solid #e8ecf0;">
+					<div class="flex-grow-1" style="min-width: 0;">
+						<p class="mb-0 text-truncate" style="font-weight: 500; color: #1A3B57; font-size: 0.9rem;">{{ cart_item.product.product_name }}</p>
+						<small class="text-muted">Cant: {{ cart_item.quantity }}</small>
+					</div>
+					<span class="dynamic-price" data-usd="{{ cart_item.product.price|stringformat:'f' }}" style="font-weight: 600; color: #1A3B57; white-space: nowrap;">{{ cart_item.product.price|format_price:request }}</span>
+				</div>
+				{% endfor %}
+
+				<div class="mt-3">
+					<div class="d-flex justify-content-between py-1">
+						<span style="color: #6c7a89;">Subtotal:</span>
+						<span style="font-weight: 500;" id="dynamic-subtotal" data-usd="{{ total|stringformat:'f' }}">{{ total|format_price:request }}</span>
+					</div>
+					{% if discount_amount > 0 %}
+					<div class="d-flex justify-content-between py-1">
+						<span style="color: #39B54A;">Descuento (Cupón):</span>
+						<span style="font-weight: 500; color: #39B54A;" id="dynamic-discount" data-usd="-{{ discount_amount|stringformat:'f' }}">-{{ discount_amount|format_price:request }}</span>
+					</div>
+					{% endif %}
+					<div class="d-flex justify-content-between py-1" id="shipping-row">
+						<span style="color: #6c7a89;">Envío <small>({{ total_weight }} kg)</small>:</span>
+						<span style="font-weight: 500;" id="dynamic-shipping" data-usd="{{ shipping_cost|stringformat:'f' }}">{% if shipping_cost == 0 %}Gratis{% else %}{{ shipping_cost|format_price:request }}{% endif %}</span>
+					</div>
+					<!-- IVA row: visible for Pago Móvil / Cashea -->
+					<dl class="justify-content-between py-1 mb-0" id="iva-row" style="display: none;">
+						<dt style="color: #6c7a89; font-weight: 400;">Impuesto IVA (16%):</dt>
+						<dd class="mb-0" id="iva-amount" style="font-weight: 500;">$ 0.00</dd>
+					</dl>
+					<!-- IGTF row: visible for PayPal / Zelle -->
+					<dl class="justify-content-between py-1 mb-0" id="igtf-row" style="display: none;">
+						<dt style="color: #6c7a89; font-weight: 400;">Impuesto IGTF (3%):</dt>
+						<dd class="mb-0" id="igtf-amount" style="font-weight: 500;">$ 0.00</dd>
+					</dl>
+					<!-- PayPal fee row: visible only for PayPal -->
+					<dl class="justify-content-between py-1 mb-0" id="paypal-fee-row" style="display: none;">
+						<dt style="color: #6c7a89; font-weight: 400;">Comisión PayPal:</dt>
+						<dd class="mb-0" id="paypal-fee-amount" style="font-weight: 500;">$ 0.00</dd>
+					</dl>
+				</div>
+				<hr style="border-color: #e0e6ed;">
+				<div class="d-flex justify-content-between align-items-center">
+					<h5 style="color: #1A3B57; font-weight: 700; margin-bottom: 0;">Total a pagar:</h5>
+					<h5 id="final-total" style="color: #39B54A; font-weight: 700; margin-bottom: 0; font-size: 1.3rem;">{{ grand_total|format_price:request }}</h5>
+				</div>
+			</div>
+		</div>
+
+		<!-- Payment Methods -->
+		<div class="card" style="border: none; border-radius: 12px; box-shadow: 0 2px 16px rgba(26,59,87,0.08);">
+			<div class="card-body" style="padding: 1.5rem 2rem;">
+				<h5 class="mb-3" style="color: #1A3B57; font-weight: 700; border-bottom: 3px solid #39B54A; padding-bottom: 0.75rem;">
+					<i class="fas fa-credit-card mr-2" style="color: #39B54A;"></i>MÉTODO DE PAGO
+				</h5>
+
+				<div class="form-group mb-2">
+					<div class="custom-control custom-radio" style="padding: 0.5rem 0 0.5rem 1.5rem;">
+						<input type="radio" class="custom-control-input" name="payment" id="paypal" checked>
+						<label class="custom-control-label d-flex align-items-center" for="paypal" style="cursor: pointer; font-weight: 500;">
+							<i class="fab fa-paypal mr-2" style="color: #003087; font-size: 1.2rem;"></i> PayPal
+						</label>
+					</div>
+				</div>
+				<div class="form-group mb-2">
+					<div class="custom-control custom-radio" style="padding: 0.5rem 0 0.5rem 1.5rem;">
+						<input type="radio" class="custom-control-input" name="payment" id="pagomovil">
+						<label class="custom-control-label d-flex align-items-center" for="pagomovil" style="cursor: pointer; font-weight: 500;">
+							<i class="fas fa-mobile-alt mr-2" style="color: #39B54A; font-size: 1.2rem;"></i> Pago Móvil
+						</label>
+					</div>
+				</div>
+				<div class="form-group mb-2">
+					<div class="custom-control custom-radio" style="padding: 0.5rem 0 0.5rem 1.5rem;">
+						<input type="radio" class="custom-control-input" name="payment" id="zelle">
+						<label class="custom-control-label d-flex align-items-center" for="zelle" style="cursor: pointer; font-weight: 500;">
+							<i class="fas fa-university mr-2" style="color: #6c1cd3; font-size: 1.2rem;"></i> Zelle
+						</label>
+					</div>
+				</div>
+				<div class="form-group mb-3">
+					<div class="custom-control custom-radio" style="padding: 0.5rem 0 0.5rem 1.5rem;">
+						<input type="radio" class="custom-control-input" name="payment" id="cashea">
+						<label class="custom-control-label d-flex align-items-center" for="cashea" style="cursor: pointer; font-weight: 500;">
+							<img src="{% static 'images/cashea1.png' %}" alt="Cashea" style="height: 22px; width: auto; margin-right: 8px;"> Cashea
+						</label>
+					</div>
+				</div>
+
+				<div id="paypal-button-container" style="display: none;"></div>
+				<button id="place-order-btn" class="btn btn-block font-weight-bold py-3" style="background: linear-gradient(135deg, #39B54A, #2d9a3e); color: white; border: none; border-radius: 10px; font-size: 1rem; letter-spacing: 0.5px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(57,181,74,0.3);">
+					Realizar Pedido
+				</button>
+				<a href="{% url 'store' %}" class="btn btn-light btn-block mt-2" style="border-radius: 10px; color: #6c7a89; font-weight: 500;">
+					<i class="fas fa-arrow-left mr-2"></i>Seguir Comprando
+				</a>
+			</div>
+		</div>
+	</aside>
 </div> <!-- row.// -->
 
-<!-- ============================ COMPONENT 1 END .// ================================= -->
+<!-- ============================ CHECKOUT END .// ================================= -->
 
 </div> <!-- container .//  -->
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+	let cookieValue = null;
+	if (document.cookie && document.cookie !== '') {
+		const cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			const cookie = cookies[i].trim();
+			if (cookie.substring(0, name.length + 1) === (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
+}
+
+var csrftoken = getCookie('csrftoken');
+var redirect_url = "{% url 'order_complete' %}";
+
+// ─── Dynamic totals ───
+// grand_total from backend includes shipping_cost and discount
+const totalWithoutShippingUSD = parseFloat('{{ total|stringformat:"f" }}');
+const shippingCostUSD = parseFloat('{{ shipping_cost|stringformat:"f" }}');
+const discountAmountUSD = parseFloat('{{ discount_amount|stringformat:"f" }}');
+let currentSubtotalUSD = totalWithoutShippingUSD - discountAmountUSD;
+
+const isVES = {% if request.session.currency == 'VES' %}true{% else %}false{% endif %};
+const bcvRate = parseFloat('{{ current_bcv_rate|stringformat:"f" }}');
+
+var amount = currentSubtotalUSD.toFixed(2);
+
+function formatCurrency(amountUSD, forceVES) {
+	if (forceVES) {
+		return "Bs. " + (amountUSD * bcvRate).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+	} else {
+		return "$" + amountUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+	}
+}
+
+// ─── Payment method switching ───
+const paypalRadio = document.getElementById('paypal');
+const pagomovilRadio = document.getElementById('pagomovil');
+const zelleRadio = document.getElementById('zelle');
+const casheaRadio = document.getElementById('cashea');
+const paypalContainer = document.getElementById('paypal-button-container');
+const placeOrderBtn = document.getElementById('place-order-btn');
+
+const deliverySwitch = document.getElementById('deliverySwitch');
+const shippingRow = document.getElementById('shipping-row'); // we need to add this ID to the shipping row in HTML
+
+function updatePaymentView() {
+	// Base subtotal without shipping but WITH discount
+	let currentSubtotalUSD = totalWithoutShippingUSD - discountAmountUSD;
+
+	let ivaUSD = currentSubtotalUSD * 0.16;
+	let igtfUSD = currentSubtotalUSD * 0.03;
+
+	let finalTotalUSD = currentSubtotalUSD;
+	let paypalFeeUSD = 0;
+
+	// Determine currency based on payment method
+	const asVES = pagomovilRadio.checked || casheaRadio.checked;
+
+	// Hide all tax rows first
+	document.getElementById('iva-row').style.display = 'none';
+	document.getElementById('igtf-row').style.display = 'none';
+	document.getElementById('paypal-fee-row').style.display = 'none';
+
+	if (paypalRadio.checked) {
+		// PayPal: IGTF (3%) + PayPal commission
+		paypalContainer.style.display = 'block';
+		placeOrderBtn.style.display = 'none';
+
+		let totalWithIgtf = currentSubtotalUSD + igtfUSD;
+		finalTotalUSD = (totalWithIgtf + 0.30) / (1 - 0.054);
+		paypalFeeUSD = finalTotalUSD - totalWithIgtf;
+
+		document.getElementById('igtf-row').style.display = 'flex';
+		document.getElementById('igtf-amount').innerText = formatCurrency(igtfUSD, asVES);
+		document.getElementById('paypal-fee-row').style.display = 'flex';
+		document.getElementById('paypal-fee-amount').innerText = formatCurrency(paypalFeeUSD, asVES);
+
+	} else if (zelleRadio.checked) {
+		// Zelle: IGTF (3%) only
+		paypalContainer.style.display = 'none';
+		placeOrderBtn.style.display = 'block';
+		placeOrderBtn.innerHTML = 'Realizar Pedido';
+		placeOrderBtn.disabled = false;
+		placeOrderBtn.style.opacity = '1';
+
+		finalTotalUSD = currentSubtotalUSD + igtfUSD;
+		document.getElementById('igtf-row').style.display = 'flex';
+		document.getElementById('igtf-amount').innerText = formatCurrency(igtfUSD, asVES);
+
+	} else if (pagomovilRadio.checked || casheaRadio.checked) {
+		// Pago Móvil / Cashea: IVA (16%)
+		paypalContainer.style.display = 'none';
+		placeOrderBtn.style.display = 'block';
+		placeOrderBtn.innerHTML = 'Realizar Pedido';
+		placeOrderBtn.disabled = false;
+		placeOrderBtn.style.opacity = '1';
+
+		finalTotalUSD = currentSubtotalUSD + ivaUSD;
+		document.getElementById('iva-row').style.display = 'flex';
+		document.getElementById('iva-amount').innerText = formatCurrency(ivaUSD, asVES);
+	}
+
+	// Add shipping cost AT THE END so it doesn't get taxed
+	if (deliverySwitch && deliverySwitch.checked) {
+		finalTotalUSD += shippingCostUSD;
+		document.getElementById('shipping-address-container').style.display = 'block';
+		if(document.getElementById('shipping-row')) document.getElementById('shipping-row').style.display = 'flex';
+	} else {
+		if (document.getElementById('shipping-address-container')) document.getElementById('shipping-address-container').style.display = 'none';
+		if(document.getElementById('shipping-row')) document.getElementById('shipping-row').style.display = 'none';
+	}
+
+	// Update all dynamic prices (products, subtotal, final total)
+	document.querySelectorAll('.dynamic-price').forEach(function(el) {
+		const usdValue = parseFloat(el.getAttribute('data-usd'));
+		el.innerText = formatCurrency(usdValue, asVES);
+	});
+	
+	const subtotalEl = document.getElementById('dynamic-subtotal');
+	subtotalEl.innerText = formatCurrency(parseFloat(subtotalEl.getAttribute('data-usd')), asVES);
+	
+	const discountEl = document.getElementById('dynamic-discount');
+	if (discountEl) {
+		discountEl.innerText = formatCurrency(parseFloat(discountEl.getAttribute('data-usd')), asVES);
+	}
+
+	const shippingEl = document.getElementById('dynamic-shipping');
+	if (shippingEl && shippingEl.getAttribute('data-usd') !== '0.000000') {
+		shippingEl.innerText = formatCurrency(parseFloat(shippingEl.getAttribute('data-usd')), asVES);
+	}
+
+	document.getElementById('final-total').innerText = formatCurrency(finalTotalUSD, asVES);
+
+	// Update PayPal amount
+	amount = finalTotalUSD.toFixed(2);
+}
+
+// Initialize
+updatePaymentView();
+
+paypalRadio.addEventListener('change', updatePaymentView);
+pagomovilRadio.addEventListener('change', updatePaymentView);
+zelleRadio.addEventListener('change', updatePaymentView);
+casheaRadio.addEventListener('change', updatePaymentView);
+
+if (deliverySwitch) {
+	deliverySwitch.addEventListener('change', updatePaymentView);
+}
+
+// ─── Form validation helper ───
+function validateForm() {
+	const form = document.getElementById('checkout-form');
+	if (!form.checkValidity()) {
+		form.reportValidity();
+		return false;
+	}
+	return true;
+}
+
+function getFormData() {
+	const form = document.getElementById('checkout-form');
+	const fd = new FormData(form);
+	
+	const dSwitch = document.getElementById('deliverySwitch');
+	if (dSwitch && dSwitch.checked) {
+		fd.append('is_delivery', 'on');
+		const addrId = document.getElementById('shipping_address_id');
+		if (addrId) {
+			fd.append('shipping_address_id', addrId.value);
+		}
+	}
+	return fd;
+}
+
+// ─── Place order (submit billing form via AJAX, then process payment) ───
+function placeOrderAndPay(paymentCallback) {
+	if (!validateForm()) return;
+
+	const formData = getFormData();
+
+	fetch("{% url 'place_order' %}", {
+		method: 'POST',
+		headers: {
+			'X-CSRFToken': csrftoken
+		},
+		body: formData
+	})
+	.then(response => response.json())
+	.then(data => {
+		if (data.error) {
+			alert(data.error);
+			return;
+		}
+		paymentCallback(data);
+	})
+	.catch(error => {
+		console.error('Error:', error);
+		alert('Hubo un error al procesar tu pedido. Intenta de nuevo.');
+	});
+}
+
+// ─── Standard button handler (Pago Móvil, Zelle, Cashea) ───
+placeOrderBtn.addEventListener('click', function() {
+	placeOrderAndPay(function(orderData) {
+		const orderID = orderData.order_number;
+
+		if (pagomovilRadio.checked) {
+			window.location.href = "/orders/payment_method_instructions/pagomovil/" + orderID + "/";
+			return;
+		} else if (zelleRadio.checked) {
+			window.location.href = "/orders/payment_method_instructions/zelle/" + orderID + "/";
+			return;
+		} else if (casheaRadio.checked) {
+			window.location.href = "/orders/payment_method_instructions/cashea/" + orderID + "/";
+			return;
+		}
+	});
+});
+
+// ─── PayPal integration ───
+var paypalButtonsRendered = false;
+
+function renderPayPalButtons() {
+	if (paypalButtonsRendered) return;
+	paypalButtonsRendered = true;
+
+	paypal.Buttons({
+		style: {
+			color: 'blue',
+			shape: 'rect',
+			label: 'pay',
+			height: 40
+		},
+		onClick: function(data, actions) {
+			if (!validateForm()) {
+				return actions.reject();
+			}
+			return actions.resolve();
+		},
+		createOrder: function(data, actions) {
+			return new Promise(function(resolve, reject) {
+				placeOrderAndPay(function(orderData) {
+					// Store order number for later
+					window._currentOrderNumber = orderData.order_number;
+					resolve(actions.order.create({
+						purchase_units: [{
+							amount: {
+								value: amount,
+							}
+						}]
+					}));
+				});
+			});
+		},
+		onApprove: function(data, actions) {
+			return actions.order.capture().then(function(details) {
+				fetch("{% url 'payments' %}", {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': csrftoken
+					},
+					body: JSON.stringify({
+						orderID: window._currentOrderNumber,
+						transID: details.id,
+						payment_method: 'PayPal',
+						status: details.status,
+					})
+				})
+				.then(response => {
+					if (!response.ok) {
+						return response.text().then(text => { throw new Error(text) });
+					}
+					return response.text().then(text => {
+						try {
+							return JSON.parse(text);
+						} catch(e) {
+							throw new Error("Invalid JSON from server: " + text.substring(0, 500));
+						}
+					});
+				})
+				.then((data) => {
+					if (data.error) {
+						alert("Backend error: " + data.error);
+						return;
+					}
+					window.location.href = redirect_url + '?order_number=' + data.order_number + '&payment_id=' + data.transID;
+				}).catch(error => {
+					console.error('Error:', error);
+					alert("Ocurrió un error (depuración): " + error.message.substring(0, 500));
+				});
+			});
+		},
+		onError: function(err) {
+			console.error('Error de PayPal:', err);
+		}
+	}).render('#paypal-button-container');
+}
+
+// Render PayPal buttons on page load
+renderPayPalButtons();
+
+// ─── Input hover/focus styles ───
+document.querySelectorAll('#checkout-form .form-control').forEach(function(input) {
+	input.addEventListener('focus', function() {
+		this.style.borderColor = '#39B54A';
+		this.style.boxShadow = '0 0 0 3px rgba(57,181,74,0.15)';
+	});
+	input.addEventListener('blur', function() {
+		this.style.borderColor = '#e0e6ed';
+		this.style.boxShadow = 'none';
+	});
+});
+</script>
 {% endblock %}

@@ -16,7 +16,6 @@
 
 <!-- Bootstrap4 files-->
 <script src="{% static 'js/bootstrap.bundle.min.js' %}" type="text/javascript"></script>
-
 <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css"/>
 
 <!-- Font awesome 5 -->
@@ -25,27 +24,14 @@
 <!-- custom style -->
 <link href="{% static 'css/ui.css' %}" rel="stylesheet" type="text/css"/>
 <link href="{% static 'css/responsive.css' %}" rel="stylesheet" media="only screen and (max-width: 1200px)" />
-
 <link href="{% static 'css/custom.css' %}" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <!-- custom javascript -->
 <script src="{% static 'js/script.js' %}" type="text/javascript"></script>
 
-
 <!-- PayPal Script -->
-<script src="https://www.paypal.com/sdk/js?client-id=AVBSMqNtoZ1IUO6lrSe6-vm9AIV1ZKN8CgXu_nINRs80xELRs650mh3yR62groIUg-GCe59Od_EFOG6O&currency=USD"></script>
-
-<script type="text/javascript">
-/// some script
-
-// jquery ready start
-$(document).ready(function() {
-	// jQuery code
-
-});
-// jquery end
-</script>
+<script src="https://www.paypal.com/sdk/js?client-id=AVk2jbhi3U37zjhCF6R14FSbUXtJHX9LEUNpykY3eUzu5r5JrK-k-El0LOkr42xN3PrmUQn0Urqqgnml&currency=USD&disable-funding=paylater"></script>
 
 </head>
 <body>
@@ -57,6 +43,26 @@ $(document).ready(function() {
 <!-- content -->
 {% endblock %}
 
-
 <!-- footer -->
 {% include 'includes/footer.html' %}
+
+{% block extra_js %}{% endblock %}
+<script>
+    $(document).ready(function() {
+        $('.toggle-password').click(function() {
+            var targetSelector = $(this).data('target');
+            var targetInput = $(targetSelector);
+            var icon = $(this).find('i');
+            
+            if (targetInput.attr('type') === 'password') {
+                targetInput.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                targetInput.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+    });
+</script>
+</body>
+</html>

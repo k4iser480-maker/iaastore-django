@@ -1,0 +1,328 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}<span class="sep">›</span> Pedidos{% endblock %}
+{% block page_title %}Pedidos{% endblock %}
+{% block page_desc %}Gestiona y da seguimiento a todos los pedidos.{% endblock %}
+
+{% block content %}
+<!-- Tabs -->
+<div class="ap-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--ap-border); padding-bottom: 10px;">
+    <a href="{% url 'admin_orders' %}" class="ap-btn {% if not show_sandbox %}ap-btn-primary{% endif %}" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 500; transition: var(--ap-transition); border-radius: 20px;">
+        <i class="fas fa-shopping-bag"></i> Pedidos Reales
+    </a>
+    <a href="{% url 'admin_orders' %}?type=sandbox" class="ap-btn {% if show_sandbox %}ap-btn-primary{% endif %}" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 500; transition: var(--ap-transition); border-radius: 20px; {% if show_sandbox %}background: #f97316; border-color: #f97316; color: #fff;{% else %}color: #f97316; border-color: rgba(249, 115, 22, 0.3); background: rgba(249, 115, 22, 0.05);{% endif %}">
+        <i class="fas fa-flask"></i> Sandbox 🧪
+    </a>
+</div>
+
+<!-- Toolbar -->
+<div class="ap-toolbar">
+    <div class="ap-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" class="ap-input" id="orderSearch" placeholder="Buscar por nombre, email o # pedido...">
+    </div>
+    <select class="ap-select" id="statusFilter">
+        <option value="">Todos los estados</option>
+        <option value="New" {% if filter_status == 'New' %}selected{% endif %}>Nuevo</option>
+        <option value="Processing" {% if filter_status == 'Processing' %}selected{% endif %}>Procesando</option>
+        <option value="Assigned" {% if filter_status == 'Assigned' %}selected{% endif %}>Asignado</option>
+        <option value="In Transit" {% if filter_status == 'In Transit' %}selected{% endif %}>En Camino</option>
+        <option value="Delivered" {% if filter_status == 'Delivered' %}selected{% endif %}>Entregado</option>
+        <option value="Completed" {% if filter_status == 'Completed' %}selected{% endif %}>Completado</option>
+        <option value="Cancelled" {% if filter_status == 'Cancelled' %}selected{% endif %}>Cancelado</option>
+    </select>
+    <div style="display: flex; gap: 8px; margin-left: auto;">
+        <button class="ap-btn" onclick="exportOrdersPDF()" style="background: #ef4444; color: #fff; border: none;" title="Exportar a PDF">
+            <i class="fas fa-file-pdf"></i> Exportar
+        </button>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="ap-card">
+    <div style="overflow-x:auto;">
+        <table class="ap-table" id="ordersTable">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Pedido</th>
+                    <th>Pago</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th style="text-align:right;">Monto</th>
+                    <th style="text-align:center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr data-name="{{ order.first_name }} {{ order.last_name }}" data-email="{{ order.email }}" data-number="{{ order.order_number }}" data-status="{{ order.status }}">
+                    <td onclick="toggleOrderDetails({{ order.id }})" style="cursor: pointer;" title="Haz clic para ver la dirección de envío">
+                        <div class="ap-user-cell">
+                            <div class="ap-avatar {% cycle 'green' 'blue' 'purple' 'amber' 'red' %}">{{ order.first_name|first }}{{ order.last_name|first }}</div>
+                            <div>
+                                <div class="ap-user-name">{{ order.first_name }} {{ order.last_name }} <i class="fas fa-chevron-down" style="font-size: 10px; color: var(--ap-text-muted); margin-left: 5px;"></i></div>
+                                <div class="ap-user-email">{{ order.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-weight:500; display:flex; align-items:center; gap:6px;">
+                        #{{ order.order_number }}
+                        {% if order.is_test %}
+                        <span class="ap-badge ap-badge-orange" style="font-size:10px; padding:2px 6px;" title="Pedido Sandbox (Prueba)"><i class="fas fa-flask"></i> Sandbox</span>
+                        {% endif %}
+                    </td>
+                    <!-- Payment Status Column -->
+                    <td>
+                        {% if order.payment_status == 'paid' %}
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span class="ap-badge ap-badge-green" style="font-size:10px;"><span class="dot"></span> Pagado</span>
+                            {% if order.payment %}
+                            <span style="font-size:11px; color:var(--ap-text-muted);">{{ order.payment.payment_method }}</span>
+                            {% endif %}
+                        </div>
+                        {% elif order.payment_status == 'review' %}
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <span class="ap-badge ap-badge-amber" style="font-size:10px;"><span class="dot"></span> En Revisión</span>
+                            {% if order.payment and order.payment.receipt %}
+                            <a href="{{ order.payment.receipt.url }}" target="_blank" class="ap-btn-sm" style="font-size:10px; padding:2px 6px; text-align:center; background:var(--ap-bg-light); border:1px solid var(--ap-border); border-radius:4px; text-decoration:none; color:var(--ap-blue);">
+                                <i class="fas fa-file-invoice"></i> Ver Recibo
+                            </a>
+                            {% endif %}
+                            {% if not is_transportista %}
+                            <div style="display:flex; gap:8px; justify-content:center; margin-top:2px;">
+                                <form method="POST" action="{% url 'admin_update_order_status' order.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="payment_status" value="paid">
+                                    <button type="submit" style="background:none; border:none; padding:0; color:var(--ap-green); cursor:pointer; font-size:14px;" title="Aprobar Pago" onclick="return confirm('¿Aprobar el pago de este pedido?')"><i class="fas fa-check-circle"></i></button>
+                                </form>
+                                <form method="POST" action="{% url 'admin_update_order_status' order.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="payment_status" value="failed">
+                                    <button type="submit" style="background:none; border:none; padding:0; color:var(--ap-red); cursor:pointer; font-size:14px;" title="Rechazar Pago" onclick="return confirm('¿Rechazar el pago y cancelar el pedido?')"><i class="fas fa-times-circle"></i></button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% elif order.payment_status == 'failed' %}
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span class="ap-badge ap-badge-red" style="font-size:10px;"><span class="dot"></span> Fallido</span>
+                            {% if order.payment %}
+                            <span style="font-size:11px; color:var(--ap-text-muted);">{{ order.payment.payment_method }}</span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <span class="ap-badge ap-badge-blue" style="font-size:10px;"><span class="dot"></span> Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="ap-badge {% if order.status == 'Completed' or order.status == 'Delivered' %}ap-badge-green{% elif order.status == 'Processing' or order.status == 'In Transit' %}ap-badge-amber{% elif order.status == 'Assigned' %}ap-badge-purple{% elif order.status == 'New' %}ap-badge-blue{% else %}ap-badge-red{% endif %}">
+                            <span class="dot"></span>
+                            {% if order.status == 'Completed' %}Completado{% elif order.status == 'Processing' %}Procesando{% elif order.status == 'New' %}Nuevo{% elif order.status == 'Assigned' %}Asignado{% elif order.status == 'In Transit' %}En camino{% elif order.status == 'Delivered' %}Entregado{% else %}Cancelado{% endif %}
+                        </span>
+                        {% if order.is_exception %}
+                        <span title="{{ order.exception_reason }}" style="color:var(--ap-amber); font-size:11px; cursor:help;"><i class="fas fa-exclamation-triangle"></i></span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--ap-text-secondary);">{{ order.created_at|date:"d M Y" }}</td>
+                    <td style="text-align:right; font-weight:600;">${{ order.order_total|floatformat:2 }}</td>
+                    <td style="text-align:center;">
+                        <form method="POST" action="{% url 'admin_update_order_status' order.id %}" style="display:flex; flex-direction:column; gap:4px; align-items:center;" id="orderForm_{{ order.id }}">
+                            {% csrf_token %}
+                            
+                            {% if order.status == 'Completed' or order.status == 'Cancelled' %}
+                                <!-- Terminal states: no dropdown, just badge -->
+                                <span class="ap-badge {% if order.status == 'Completed' %}ap-badge-green{% else %}ap-badge-red{% endif %}" style="font-size:11px;">
+                                    <i class="fas {% if order.status == 'Completed' %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                                    {% if order.status == 'Completed' %}Completado{% else %}Cancelado{% endif %}
+                                </span>
+                            {% else %}
+                                <!-- Dynamic dropdown: only valid transitions -->
+                                <select name="status" class="ap-select ap-btn-sm order-status-select" 
+                                        data-current="{{ order.status }}" 
+                                        data-order-id="{{ order.id }}"
+                                        style="padding:4px 28px 4px 8px; font-size:11px;"
+                                        {% if order.payment_status != 'paid' %}disabled title="Requiere pago confirmado"{% endif %}
+                                        onchange="this.form.submit()">
+                                </select>
+                                {% if order.is_delivery and order.status == 'Processing' and not is_transportista %}
+                                <select name="transportista_id" class="ap-select ap-btn-sm" onchange="this.form.submit()" style="padding:4px 28px 4px 8px; font-size:11px; max-width: 120px; margin-top:4px;">
+                                    <option value="">Asignar a...</option>
+                                    {% for trans in transportistas %}
+                                    <option value="{{ trans.id }}" {% if order.transportista.id == trans.id %}selected{% endif %}>{{ trans.user.first_name }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% elif order.transportista %}
+                                <span style="font-size:10px; color:var(--ap-text-secondary); display:block; margin-top:4px;"><i class="fas fa-truck"></i> {{ order.transportista.user.first_name }}</span>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if user.is_superadmin %}
+                            <input type="hidden" name="force_reason" value="" class="force-reason-input" data-order-id="{{ order.id }}">
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% if order.is_delivery %}
+                <tr id="details-{{ order.id }}" class="order-details-row" style="display: none; background-color: var(--ap-bg-light);">
+                    <td colspan="7" style="padding: 15px 20px; border-top: 1px dashed var(--ap-border);">
+                        {% if order.is_test %}
+                        <div style="background: rgba(249, 115, 22, 0.08); border: 1px dashed #f97316; color: #f97316; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 12.5px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-flask" style="font-size: 14px;"></i>
+                            <span><strong>Pedido de Prueba / Sandbox:</strong> Este pedido fue generado por un administrador. No descuenta stock ni envía notificaciones por correo.</span>
+                        </div>
+                        {% endif %}
+                        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: var(--ap-text-main);"><i class="fas fa-shipping-fast" style="color: var(--ap-blue);"></i> Formulario de Envío (Delivery)</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 12px; color: var(--ap-text-secondary);">
+                            <div>
+                                <strong><i class="fas fa-user"></i> Destinatario:</strong> {{ order.full_name }}<br>
+                                <strong style="margin-top:4px; display:inline-block;"><i class="fas fa-phone"></i> Teléfono:</strong> {{ order.phone }}<br>
+                                <strong style="margin-top:4px; display:inline-block;"><i class="fas fa-envelope"></i> Email:</strong> {{ order.email }}
+                            </div>
+                            <div>
+                                <strong><i class="fas fa-map-marker-alt"></i> Dirección de Envío:</strong> {{ order.address_line_1 }}{% if order.address_line_2 %}, {{ order.address_line_2 }}{% endif %}<br>
+                                <strong style="margin-top:4px; display:inline-block;"><i class="fas fa-city"></i> Ciudad/Estado:</strong> {{ order.city }}, {{ order.state }}<br>
+                                {% if order.order_note %}
+                                <strong style="margin-top:4px; display:inline-block;"><i class="fas fa-comment-alt"></i> Nota de Pedido:</strong> {{ order.order_note }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Mini Timeline -->
+                        {% if order.checkpoints.all %}
+                        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                            <h5 style="margin: 0 0 10px 0; font-size: 12px; color: var(--ap-text-main);"><i class="fas fa-history" style="color: var(--ap-green);"></i> Historial de Tracking</h5>
+                            <div style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px;">
+                                {% for cp in order.checkpoints.all %}
+                                <div style="flex: 0 0 auto; background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 6px; font-size: 11px;">
+                                    <div style="font-weight: 600; color: var(--ap-green);">{{ cp.get_status_display }}</div>
+                                    <div style="color: var(--ap-text-muted);">{{ cp.created_at|date:"d M, H:i" }}</div>
+                                    {% if cp.note %}<div style="color: var(--ap-text-secondary); margin-top: 4px; font-style: italic;">{{ cp.note }}</div>{% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; color:var(--ap-text-muted); padding:40px;">No se encontraron pedidos.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="ap-pagination">
+        <span>Mostrando {{ orders|length }} pedido{{ orders|length|pluralize:"s" }}</span>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ===== State Machine Data =====
+const VALID_TRANSITIONS = {{ valid_transitions|safe }};
+const STATUS_LABELS = {{ status_labels|safe }};
+
+// ===== Populate dynamic dropdowns =====
+document.querySelectorAll('.order-status-select').forEach(select => {
+    const currentStatus = select.dataset.current;
+    const orderId = select.dataset.orderId;
+    const allowed = VALID_TRANSITIONS[currentStatus] || [];
+
+    // Current status as first option (selected)
+    const currentOpt = document.createElement('option');
+    currentOpt.value = currentStatus;
+    currentOpt.textContent = STATUS_LABELS[currentStatus] || currentStatus;
+    currentOpt.selected = true;
+    select.appendChild(currentOpt);
+
+    // Valid transitions
+    allowed.forEach(status => {
+        const opt = document.createElement('option');
+        opt.value = status;
+        opt.textContent = STATUS_LABELS[status] || status;
+        select.appendChild(opt);
+    });
+
+    // If no transitions available, disable dropdown
+    if (allowed.length === 0) {
+        select.disabled = true;
+        select.style.opacity = '0.6';
+    }
+
+    // Handle change with confirmation
+    select.addEventListener('change', function() {
+        const newStatus = this.value;
+        const label = STATUS_LABELS[newStatus] || newStatus;
+
+        if (newStatus === 'Cancelled') {
+            if (!confirm(`¿Estás seguro de CANCELAR este pedido? Esta acción es irreversible.`)) {
+                this.value = currentStatus;
+                return;
+            }
+        } else {
+            if (!confirm(`¿Cambiar estado a "${label}"?`)) {
+                this.value = currentStatus;
+                return;
+            }
+        }
+
+        this.form.submit();
+    });
+});
+
+// ===== Order details toggle =====
+function toggleOrderDetails(orderId) {
+    const detailsRow = document.getElementById('details-' + orderId);
+    if (detailsRow) {
+        if (detailsRow.style.display === 'none') {
+            detailsRow.style.display = 'table-row';
+        } else {
+            detailsRow.style.display = 'none';
+        }
+    }
+}
+
+// ===== Client-side search & filter =====
+const searchInput = document.getElementById('orderSearch');
+const statusFilter = document.getElementById('statusFilter');
+const rows = document.querySelectorAll('#ordersTable tbody tr');
+
+function filterRows() {
+    const q = searchInput.value.toLowerCase();
+    const s = statusFilter.value;
+    rows.forEach(row => {
+        const name = (row.dataset.name || '').toLowerCase();
+        const email = (row.dataset.email || '').toLowerCase();
+        const num = (row.dataset.number || '').toLowerCase();
+        const status = row.dataset.status || '';
+        const matchSearch = !q || name.includes(q) || email.includes(q) || num.includes(q);
+        const matchStatus = !s || status === s;
+        row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+    });
+}
+searchInput.addEventListener('input', filterRows);
+statusFilter.addEventListener('change', filterRows);
+
+function exportOrdersPDF() {
+    const d = new Date().toLocaleDateString('es-ES');
+    let filters = [];
+    if (searchInput && searchInput.value) filters.push(`Búsqueda: "${searchInput.value}"`);
+    if (statusFilter && statusFilter.value) filters.push(`Estado: ${statusFilter.options[statusFilter.selectedIndex].text}`);
+    
+    const meta = {
+        user: "{{ user.first_name|default:user.username }} {{ user.last_name }}",
+        date: d,
+        filters: filters.length > 0 ? filters.join(" | ") : "Ninguno"
+    };
+    
+    // Acciones is index 6
+    if (typeof exportTableToPDF === 'function') {
+        exportTableToPDF('ordersTable', 'Reporte de Pedidos', 'pedidos.pdf', meta, [6], 'landscape');
+    } else {
+        alert('La función de exportación no está disponible.');
+    }
+}
+</script>
+{% endblock %}

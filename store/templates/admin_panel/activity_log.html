@@ -1,0 +1,205 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}<span class="sep">›</span> Registro de Actividad{% endblock %}
+{% block page_title %}Registro de Actividad{% endblock %}
+{% block page_desc %}Historial completo de todas las acciones realizadas en el panel de administración.{% endblock %}
+
+{% block content %}
+<style>
+    .log-filters {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: var(--ap-bg);
+        border: 1px solid var(--ap-border);
+        border-radius: 8px;
+    }
+    .log-filters select {
+        padding: 8px 12px;
+        border: 1px solid var(--ap-border);
+        border-radius: 6px;
+        background: white;
+        font-size: 13px;
+        color: var(--ap-text);
+        min-width: 160px;
+    }
+    .log-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .log-badge.create { background: rgba(16,185,129,0.1); color: #059669; }
+    .log-badge.update { background: rgba(59,130,246,0.1); color: #2563eb; }
+    .log-badge.delete { background: rgba(239,68,68,0.1); color: #dc2626; }
+    .log-badge.toggle { background: rgba(245,158,11,0.1); color: #d97706; }
+    .log-badge.status { background: rgba(139,92,246,0.1); color: #7c3aed; }
+    .log-module {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        background: rgba(100,116,139,0.1);
+        color: #475569;
+    }
+    .log-user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .log-user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--ap-accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    .log-desc {
+        font-size: 13px;
+        color: var(--ap-text);
+        max-width: 400px;
+    }
+    .log-time {
+        font-size: 12px;
+        color: var(--ap-text-muted);
+        white-space: nowrap;
+    }
+</style>
+
+<!-- Filters -->
+<form method="GET" class="log-filters">
+    <select name="module" onchange="this.form.submit()">
+        <option value="">Todos los módulos</option>
+        {% for m in all_modules %}
+        <option value="{{ m }}" {% if filter_module == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+    </select>
+    <select name="action" onchange="this.form.submit()">
+        <option value="">Todas las acciones</option>
+        {% for code, label in action_choices %}
+        <option value="{{ code }}" {% if filter_action == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <select name="user_id" onchange="this.form.submit()">
+        <option value="">Todos los usuarios</option>
+        {% for u in all_users %}
+        <option value="{{ u.id }}" {% if filter_user == u.id|stringformat:'d' %}selected{% endif %}>{{ u.first_name }} {{ u.last_name }}</option>
+        {% endfor %}
+    </select>
+    {% if filter_module or filter_action or filter_user %}
+    <a href="{% url 'admin_activity_log' %}" class="ap-btn" style="padding: 8px 16px; font-size: 13px;">
+        <i class="fas fa-times"></i> Limpiar
+    </a>
+    {% endif %}
+    <div style="margin-left: auto;">
+        <button type="button" class="ap-btn" onclick="exportLogPDF()" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; font-size: 13px;" title="Exportar a PDF">
+            <i class="fas fa-file-pdf"></i> Exportar a PDF
+        </button>
+    </div>
+</form>
+
+<div class="ap-card">
+    <div class="ap-card-header">
+        <h3 class="ap-card-title"><i class="fas fa-history mr-2"></i> Actividad Reciente</h3>
+        <span style="font-size: 13px; color: var(--ap-text-muted);">
+            Mostrando {{ logs|length }} registros
+        </span>
+    </div>
+    <div class="ap-card-body p-0">
+        <div style="overflow-x: auto;">
+            <table class="ap-table" id="logTable">
+                <thead>
+                    <tr>
+                        <th>Fecha / Hora</th>
+                        <th>Usuario</th>
+                        <th>Módulo</th>
+                        <th>Acción</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="log-time">
+                            {{ log.timestamp|date:"d/m/Y" }}<br>
+                            <strong>{{ log.timestamp|time:"H:i:s" }}</strong>
+                        </td>
+                        <td>
+                            {% if log.user %}
+                            <div class="log-user">
+                                <div class="log-user-avatar">
+                                    {{ log.user.first_name|first }}{{ log.user.last_name|first }}
+                                </div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 500;">{{ log.user.first_name }} {{ log.user.last_name }}</div>
+                                    <div style="font-size: 11px; color: var(--ap-text-muted);">{{ log.user.email }}</div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span style="color: var(--ap-text-muted); font-style: italic;">Usuario eliminado</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="log-module">{{ log.module }}</span></td>
+                        <td>
+                            <span class="log-badge {{ log.action|lower }}">
+                                {{ log.get_action_display }}
+                            </span>
+                        </td>
+                        <td class="log-desc">{{ log.description }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-clipboard-check" style="font-size: 32px; color: var(--ap-text-muted); margin-bottom: 12px; display: block;"></i>
+                            No hay actividad registrada aún.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportLogPDF() {
+    const d = new Date().toLocaleDateString('es-ES');
+    
+    // We can extract current filter values from the select inputs
+    const form = document.querySelector('.log-filters');
+    const mod = form.querySelector('select[name="module"]');
+    const act = form.querySelector('select[name="action"]');
+    const usr = form.querySelector('select[name="user_id"]');
+    
+    let filters = [];
+    if (mod && mod.value) filters.push(`Módulo: ${mod.options[mod.selectedIndex].text}`);
+    if (act && act.value) filters.push(`Acción: ${act.options[act.selectedIndex].text}`);
+    if (usr && usr.value) filters.push(`Usuario: ${usr.options[usr.selectedIndex].text}`);
+    
+    const meta = {
+        user: "{{ user.first_name|default:user.username }} {{ user.last_name }}",
+        date: d,
+        filters: filters.length > 0 ? filters.join(" | ") : "Ninguno"
+    };
+    
+    if (typeof exportTableToPDF === 'function') {
+        exportTableToPDF('logTable', 'Registro de Actividad', 'actividad.pdf', meta, [], 'landscape');
+    } else {
+        alert('La función de exportación no está disponible.');
+    }
+}
+</script>
+{% endblock %}

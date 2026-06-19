@@ -1,0 +1,47 @@
+{% load static %}
+<!-- Chatbot Helper — Widget Flotante -->
+<link href="{% static 'css/chatbot.css' %}?v=1.2" rel="stylesheet" type="text/css"/>
+
+<!-- Botón flotante -->
+<button id="helper-chat-toggle" aria-label="Abrir chat con Helper">
+    <svg class="helper-chat-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/>
+        <path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/>
+    </svg>
+    <svg class="helper-close-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+    </svg>
+    <span id="helper-badge"></span>
+</button>
+
+<!-- Ventana de chat -->
+<div id="helper-chat-window">
+    <!-- Header -->
+    <div id="helper-chat-header">
+        <div class="helper-avatar">
+            <i class="fas fa-robot" style="font-size:20px; color:#fff;"></i>
+        </div>
+        <div class="helper-header-info">
+            <div class="helper-header-name">Helper</div>
+            <div class="helper-header-status">
+                <span class="helper-online-dot"></span> Asistente IAA Store
+            </div>
+        </div>
+        <button id="helper-chat-close" aria-label="Cerrar chat">&times;</button>
+    </div>
+
+    <!-- Mensajes -->
+    <div id="helper-chat-messages"></div>
+
+    <!-- Input -->
+    <div id="helper-chat-input-area">
+        <input id="helper-chat-input" type="text" placeholder="Escribe un mensaje..." autocomplete="off" maxlength="500">
+        <button id="helper-chat-send" aria-label="Enviar mensaje">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script src="{% static 'js/chatbot.js' %}?v=1.2"></script>

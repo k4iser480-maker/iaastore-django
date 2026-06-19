@@ -1,0 +1,80 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo pedido asignado - IAA Store</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f6f9fc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #3c4257; -webkit-font-smoothing: antialiased; }
+        table { border-spacing: 0; }
+        td { padding: 0; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f6f9fc; padding-top: 40px; padding-bottom: 40px; }
+        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e3e8ee; overflow: hidden; }
+        .header { padding: 35px 40px 15px 40px; text-align: left; }
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #1a1f36; text-decoration: none; margin: 0; }
+        .logo span { color: #39B54A; }
+        .content { padding: 20px 40px 40px 40px; font-size: 15px; line-height: 24px; }
+        h1 { font-size: 20px; color: #1a1f36; font-weight: 600; margin-top: 0; margin-bottom: 20px; }
+        p { margin-top: 0; margin-bottom: 16px; color: #525f7f; }
+        .btn { display: inline-block; background-color: #1a1f36; color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 6px; margin-top: 15px; margin-bottom: 15px; }
+        
+        .order-info { background-color: #f9fafb; border-radius: 6px; border: 1px solid #e3e8ee; margin-bottom: 24px; padding: 20px; }
+        .order-info p { margin-bottom: 8px; font-size: 14px; }
+        .order-info p:last-child { margin-bottom: 0; }
+        .order-info strong { color: #1a1f36; font-weight: 600; display: inline-block; width: 80px; }
+
+        .footer { max-width: 600px; margin: 0 auto; padding: 30px 40px; text-align: left; color: #8792a2; font-size: 13px; line-height: 20px; }
+        .footer a { color: #8792a2; text-decoration: underline; }
+        .divider { border-top: 1px solid #e3e8ee; margin: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <center>
+            <table class="main" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td class="header">
+                        <div class="logo">IAA<span>STORE</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="content">
+                        <h1>Nuevo pedido asignado</h1>
+                        <p>Hola {{ transportista.user.first_name }},</p>
+                        <p>Tienes una nueva ruta de entrega asignada en el sistema. Por favor, revisa los detalles a continuación:</p>
+                        
+                        <div class="order-info">
+                            <h3 style="color: #1a1f36; font-size: 15px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e3e8ee; padding-bottom: 10px;">Detalles del Destinatario</h3>
+                            <p><strong>Pedido:</strong> #{{ order.order_number }}</p>
+                            <p><strong>Cliente:</strong> {{ order.full_name }}</p>
+                            <p><strong>Teléfono:</strong> {{ order.phone }}</p>
+                            <p><strong>Dirección:</strong> {{ order.address_line_1 }}{% if order.address_line_2 %}, {{ order.address_line_2 }}{% endif %}, {{ order.city }}</p>
+                        </div>
+                        
+                        <p>Para ver la información completa de los artículos a entregar y actualizar el estado de tu ruta, ingresa a tu panel operativo:</p>
+                        
+                        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <td align="left" style="padding: 10px 0;">
+                                    <a href="http://{{ domain|default:'127.0.0.1:8000' }}/accounts/login/" class="btn">Acceder al panel</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; margin: 0 auto;">
+                <tr>
+                    <td class="footer">
+                        <p style="margin-bottom: 5px;">&copy; 2026 IAA Store - Industrias de Aislantes y Acero, I.A.A. C.A.</p>
+                        <p>Este es un mensaje automático del sistema de logística.</p>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+</body>
+</html>
+{% endautoescape %}

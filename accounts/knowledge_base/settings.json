@@ -1,0 +1,23 @@
+{
+  "module": "settings",
+  "title": "Configuración",
+  "permission": "superadmin_only",
+  "questions": [
+    "cambiar configuracion",
+    "ajustes",
+    "impuestos",
+    "configurar correo",
+    "frecuencia de respaldos"
+  ],
+  "answer": "Aquí ajustas las variables globales de la plataforma.\n\nPuedes modificar parámetros como el correo de destino para respaldos, tiempo de expiración de sesiones u otras configuraciones globales de la tienda.",
+  "keywords": [
+    "configurar",
+    "correo",
+    "respaldos",
+    "ajustes",
+    "configuracion",
+    "cambiar",
+    "impuestos",
+    "frecuencia"
+  ]
+}

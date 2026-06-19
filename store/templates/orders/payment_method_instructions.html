@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+<div class="container" style="min-height: 50vh;">
+
+<h4 class="text-center mb-4 mt-4" style="color: #1A3B57; font-weight: 700;">Instrucciones de Pago</h4>
+<div class="row justify-content-center">
+	
+	<div class="col-md-6">
+		<div class="card shadow-sm" style="border-radius: 10px; border: none;">
+			<div class="card-body p-4">
+                <h5 class="card-title text-center mb-1 pb-3" style="border-bottom: 2px solid #f0f0f0; color: #333;">Total a Pagar: <strong>{{ display_total|format_price:request }}</strong></h5>
+                {% if method == 'pagomovil' %}
+                <div style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #39B54A; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <h6 style="color: #1A3B57; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem;">Datos para Transferencia Pago Móvil</h6>
+                    <ul class="list-unstyled" style="font-size: 15px; margin-bottom: 0;">
+                        <li class="mb-2"><i class="fas fa-university text-muted mr-2"></i><strong>Banco:</strong> Banesco (0134)</li>
+                        <li class="mb-2"><i class="fas fa-id-card text-muted mr-2"></i><strong>RIF:</strong> J-12345678</li>
+                        <li><i class="fas fa-phone text-muted mr-2"></i><strong>Teléfono:</strong> 0414-1234567</li>
+                    </ul>
+                </div>
+                {% elif method == 'zelle' %}
+                <div style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #741bda; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <h6 style="color: #1A3B57; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem;">Instrucciones de Pago – ZELLE</h6>
+                    <p style="font-size: 15px; margin-bottom: 10px;">1. Realiza el pago a través de Zelle utilizando los siguientes datos:</p>
+                    <ul class="list-unstyled" style="font-size: 15px; margin-bottom: 15px; padding-left: 15px;">
+                        <li class="mb-2"><strong>Nombre del titular:</strong> Industrias de Aislantes y Acero, I.A.A.</li>
+                        <li class="mb-2"><strong>Banco:</strong> Banesco USA</li>
+                        <li class="mb-2"><strong>Correo asociado:</strong> zelle@iaacaven.com</li>
+                        <li class="mb-2"><strong>Monto a pagar:</strong> {{ display_total|format_price:request }}</li>
+                        <li><strong>Referencia:</strong> <span style="color: #d9534f; font-weight: bold;">PEDIDO-{{ order.order_number }}</span></li>
+                    </ul>
+                    <p style="font-size: 14px; margin-bottom: 10px; color: #d9534f;"><strong>2. Es MUY IMPORTANTE que coloques la referencia (PEDIDO-{{ order.order_number }}) en el concepto o nota del pago.</strong></p>
+                    <p style="font-size: 14px; margin-bottom: 10px;">3. Una vez realizado el pago, adjunta el comprobante a continuación.</p>
+                    <p style="font-size: 14px; margin-bottom: 0;">4. Tu pedido será verificado manualmente. La confirmación puede tardar un tiempo dependiendo de la validación.</p>
+                </div>
+                {% elif method == 'cashea' %}
+                <div style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #00C2FF; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{% static 'images/cashea1.png' %}" alt="Cashea" style="height: 30px; width: auto; margin-right: 10px;">
+                        <h6 style="color: #1A3B57; font-weight: bold; margin-bottom: 0; font-size: 1.1rem;">Instrucciones de Pago – CASHEA</h6>
+                    </div>
+                    <p style="font-size: 15px; margin-bottom: 12px;"><strong>1.</strong> Abre la app de <strong>Cashea</strong> en tu teléfono móvil.</p>
+                    <p style="font-size: 15px; margin-bottom: 12px;"><strong>2.</strong> Escanea el código QR del comercio o busca <strong>"IAA Store"</strong> dentro de la app.</p>
+                    <p style="font-size: 15px; margin-bottom: 12px;"><strong>3.</strong> Ingresa el monto total a pagar: <strong>{{ display_total|format_price:request }}</strong></p>
+                    <p style="font-size: 15px; margin-bottom: 12px;"><strong>4.</strong> En el concepto o nota de pago, coloca la referencia:</p>
+                    <p class="text-center mb-3"><span style="background-color: #fff3cd; padding: 8px 18px; border-radius: 5px; font-weight: bold; color: #d9534f; font-size: 1.05rem;">PEDIDO-{{ order.order_number }}</span></p>
+                    <p style="font-size: 15px; margin-bottom: 12px;"><strong>5.</strong> Confirma el pago en la app y <strong>descarga o captura</strong> el comprobante.</p>
+                    <p style="font-size: 15px; margin-bottom: 0;"><strong>6.</strong> Sube el comprobante a continuación para que podamos verificar tu pago.</p>
+                    <hr style="border-color: #e0e6ed; margin: 15px 0;">
+                    <p style="font-size: 14px; margin-bottom: 0; color: #d9534f;"><strong><i class="fas fa-exclamation-triangle mr-1"></i> IMPORTANTE:</strong> Es obligatorio colocar la referencia (PEDIDO-{{ order.order_number }}) en el concepto del pago. Sin ella, no podremos identificar tu pedido.</p>
+                </div>
+                {% endif %}
+
+                <form id="payment-form">
+                    <div class="form-group mb-4">
+                        <label for="comprobante" style="font-weight: 600; color: #1A3B57; font-size: 15px;">Sube tu comprobante (Obligatorio)</label>
+                        <div class="custom-file mt-2">
+                            <input type="file" class="custom-file-input" id="comprobante" accept=".pdf, image/*" required>
+                            <label class="custom-file-label" for="comprobante" data-browse="Elegir">Seleccionar PDF o Imagen...</label>
+                        </div>
+                        <small class="form-text text-muted mt-2">Formatos aceptados: JPG, PNG, PDF.</small>
+                    </div>
+                    <button type="submit" id="confirm-btn" class="btn btn-block font-weight-bold py-3 mt-4" style="background-color: #39B54A; color: white; border-radius: 5px; font-size: 16px; transition: all 0.3s ease;">
+                        Confirmar Pago
+                    </button>
+                    <a href="{% url 'checkout' %}" class="btn btn-block btn-light mt-3" style="color: #6c757d;">Volver al Checkout</a>
+                </form>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+</div>
+</section>
+
+<script>
+    // Mostrar nombre del archivo seleccionado
+    document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+        var fileName = document.getElementById("comprobante").files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+    const orderID = "{{ order.order_number }}";
+    const methodSlug = "{{ method }}";
+    let methodStr;
+    if (methodSlug === "pagomovil") { methodStr = "Pago Móvil"; }
+    else if (methodSlug === "cashea") { methodStr = "Cashea"; }
+    else { methodStr = "{{ method|title }}"; }
+    const redirectUrl = "{% url 'order_complete' %}";
+
+    document.getElementById('payment-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const comprobanteInput = document.getElementById('comprobante');
+        if (comprobanteInput.files.length === 0) return;
+
+        const confirmBtn = document.getElementById('confirm-btn');
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+
+        let formData = new FormData();
+        formData.append('orderID', orderID);
+        formData.append('status', 'Pending');
+        formData.append('payment_method', methodStr);
+        formData.append('receipt', comprobanteInput.files[0]);
+
+        fetch("{% url 'manual_payment' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            window.location.href = redirectUrl + '?order_number=' + data.order_number + '&payment_id=' + data.transID;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Confirmar Pago';
+            alert('Hubo un error procesando el pago. Intente de nuevo.');
+        });
+    });
+</script>
+{% endblock %}

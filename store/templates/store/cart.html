@@ -1,109 +1,155 @@
 {% extends "base.html" %}
 {% load static %}
+{% load currency_tags %}
 
 {% block content %}
 
-<section class="section-content padding-y bg">
-<div class="container">
+<style>
+    .cart-product-link {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .cart-product-link:hover {
+        color: #39B54A !important;
+        text-decoration: none;
+    }
+</style>
 
-<!-- ============================ COMPONENT 1 ================================= -->
-{% if not cart_items %}
-    <h2 class="text-center">Tu carrito de compras esta vacio</h2>
-    <br>
-    <div class="text-center">
-		<a href="{% url 'store' %}" class="btn btn-primary">Continuar Comprando</a>
-		{% else %}
-<div class="row">
-	<aside class="col-lg-9">
-<div class="card">
-<table class="table table-borderless table-shopping-cart">
-<thead class="text-muted">
-<tr class="small text-uppercase">
-  <th scope="col">Producto</th>
-  <th scope="col" width="120">Cantidad</th>
-  <th scope="col" width="120">Precio</th>
-  <th scope="col" class="text-right" width="200"> </th>
-</tr>
-</thead>
-<tbody>
+<!-- Cart Start -->
+<div class="container-fluid pb-5 pt-4">
+    <div class="row px-xl-5">
+        <div class="col-lg-8 table-responsive mb-5">
+            {% if not cart_items %}
+                <div class="text-center p-5" style="background-color: #fff; border: 1px solid #E0E0E0; border-radius: 4px;">
+                    <h2 style="color: #1A3B57; font-family: 'Montserrat', sans-serif;">Tu carrito de compras está vacío</h2>
+                    <br>
+                    <a href="{% url 'store' %}" class="btn px-4 py-2" style="background-color: #39B54A; color: white; font-weight: 500;">Continuar Comprando</a>
+                </div>
+            {% else %}
+                <table class="table table-light table-borderless table-hover text-center mb-0" style="background-color: #ffffff; border: 1px solid #E0E0E0;">
+                    <thead style="background-color: #1A3B57; color: #ffffff;">
+                        <tr>
+                            <th style="padding: 15px;">Productos</th>
+                            <th style="padding: 15px;">Precio</th>
+                            <th style="padding: 15px;">Cantidad</th>
+                            <th style="padding: 15px;">Total</th>
+                            <th style="padding: 15px;">Eliminar</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle">
+                        {% for cart_item in cart_items %}
+                        <tr>
+                            <td class="align-middle text-left" style="padding: 15px;">
+                                <a href="{{ cart_item.product.get_url }}">
+                                    <img src="{{ cart_item.product.images.url }}" alt="" style="width: 50px; height: 50px; object-fit: contain; margin-right: 15px;">
+                                </a>
+                                <a href="{{ cart_item.product.get_url }}" class="cart-product-link" style="font-weight: 500;">{{ cart_item.product.product_name }}</a>
+                            </td>
+                            <td class="align-middle" style="color: #333; padding: 15px;">{{ cart_item.product.price|format_price:request }}</td>
+                            <td class="align-middle" style="padding: 15px;">
+                                <div class="input-group quantity mx-auto" style="width: 100px;">
+                                    <div class="input-group-btn">
+                                        <a href="{% url 'remove_cart' cart_item.product.id %}" class="btn btn-sm btn-minus" style="background-color: #39B54A; color: white;">
+                                            <i class="fa fa-minus"></i>
+                                        </a>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm border-0 text-center" value="{{ cart_item.quantity }}" readonly style="background-color: #f5f5f5; color: #1A3B57; font-weight: bold;">
+                                    <div class="input-group-btn">
+                                        <a href="{% url 'add_cart' cart_item.product.id %}" class="btn btn-sm btn-plus" style="background-color: #39B54A; color: white;">
+                                            <i class="fa fa-plus"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle" style="color: #333; padding: 15px;">{{ cart_item.sub_total|format_price:request }}</td>
+                            <td class="align-middle" style="padding: 15px;">
+                                <a href="{% url 'remove_cart_item' cart_item.product.id %}" onclick="return confirm('¿Estás seguro que quieres eliminar este elemento?')" class="btn btn-sm" style="background-color: #dc3545; color: white;">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
 
-
-{% for cart_item in cart_items %}
-<tr>
-	<td>
-		<figure class="itemside align-items-center">
-			<div class="aside"><img src="{{ cart_item.product.images.url }}" class="img-sm"></div>
-			<figcaption class="info">
-				<a href="{{ cart_item.product.get_url }}" class="title text-dark">{{ cart_item.product.product_name }}</a>
-				<p class="text-muted small">Color: 25 Mpx <br> Size: Canon</p>
-			</figcaption>
-		</figure>
-	</td>
-	<td> 
-		<!-- col.// -->
-					<div class="col"> 
-						<div class="input-group input-spinner">
-							<div class="input-group-prepend">
-							<a href="{% url 'remove_cart' cart_item.product.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
-							</div>
-							<input type="text" class="form-control"  value="{{ cart_item.quantity }}">
-							<div class="input-group-append">
-							<a href="{% url 'add_cart' cart_item.product.id %}" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-plus"></i> </a>
-							</div>
-						</div> <!-- input-group.// -->
-					</div> <!-- col.// -->
-	</td>
-	<td> 
-		<div class="price-wrap"> 
-			<var class="price">${{ cart_item.sub_total }}</var> 
-			<small class="text-muted"> ${{ cart_item.product.price }} each </small> 
-		</div> <!-- price-wrap .// -->
-	</td>
-	<td class="text-right"> 
-	<a href="{% url 'remove_cart_item' cart_item.product.id %}" onclick="return confirm('Estas seguro que quieres eliminar este elemento?')" class="btn btn-danger">Eliminar</a>
-	</td>
-</tr>
-{% endfor %}
-
-</tbody>
-</table>
-</div> <!-- card.// -->
-
-	</aside> <!-- col.// -->
-	<aside class="col-lg-3">
-
-		<div class="card">
-		<div class="card-body">
-			<dl class="dlist-align">
-			  <dt>Precio total:</dt>
-			  <dd class="text-right">$ {{total}}</dd>
-			</dl>
-			<dl class="dlist-align">
-			  <dt>Impuesto:</dt>
-			  <dd class="text-right"> $ {{ tax }}</dd>
-			</dl>
-			<dl class="dlist-align">
-			  <dt>Total:</dt>
-			  <dd class="text-right text-dark b"><strong>$ {{ grand_total }}</strong></dd>
-			</dl>
-			<hr>
-			<p class="text-center mb-3">
-				<img src="{% static 'images/misc/payments.png' %}" height="26">
-			</p>
-			<a href="{% url 'checkout' %}" class="btn btn-primary btn-block">Finalizar Compra</a>
-			<a href="{% url 'store' %}" class="btn btn-light btn-block">Seguir Comprando</a>
-		</div> <!-- card-body.// -->
-		</div> <!-- card.// -->
-
-</aside> <!-- col.// -->
-
-
-</div> <!-- row.// -->
-{% endif %}
-<!-- ============================ COMPONENT 1 END .// ================================= -->
-
-</div> <!-- container .//  -->
-</section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
+        {% if cart_items %}
+        <div class="col-lg-4">
+            <form class="mb-30" action="{% url 'apply_coupon' %}" method="POST">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" class="form-control p-4" name="coupon_code" placeholder="Código de Cupón" value="{{ coupon_code|default:'' }}" style="border-radius: 4px 0 0 4px; border: 1px solid #E0E0E0;" {% if coupon_code %}readonly{% endif %}>
+                    <div class="input-group-append">
+                        {% if coupon_code %}
+                            <a href="{% url 'remove_coupon' %}" class="btn px-4" style="background-color: #dc3545; color: white; border-radius: 0 4px 4px 0; display: flex; align-items: center;">Remover</a>
+                        {% else %}
+                            <button class="btn px-4" style="background-color: #1A3B57; color: white; border-radius: 0 4px 4px 0;">Aplicar</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+            <div class="p-4 mb-3 mt-4" style="background-color: #ffffff; border: 1px solid #E0E0E0; border-radius: 4px;">
+                <h5 class="text-uppercase mb-3" style="color: #1A3B57; font-weight: 600;">RESUMEN DEL CARRITO</h5>
+                <div class="pb-2" style="border-bottom: 1px dashed #E0E0E0;">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 style="color: #333;">Subtotal</h6>
+                        <div class="text-right">
+                            <h6 style="color: #333; margin-bottom: 0;">{{ total|format_price:request }}</h6>
+                            {% if request.session.currency != 'VES' %}
+                            <small class="text-muted">{{ total|format_price_bs }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if discount_amount > 0 %}
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 style="color: #39B54A;">Descuento (Cupón)</h6>
+                        <div class="text-right">
+                            <h6 style="color: #39B54A; margin-bottom: 0;">-{{ discount_amount|format_price:request }}</h6>
+                            {% if request.session.currency != 'VES' %}
+                            <small class="text-muted">-{{ discount_amount|format_price_bs }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between">
+                        <h6 class="font-weight-medium" style="color: #333;">Impuesto {% if request.session.currency == 'VES' %}(IVA 16%){% else %}(IGTF 3%){% endif %}</h6>
+                        <div class="text-right">
+                            <h6 class="font-weight-medium" style="color: #333; margin-bottom: 0;">{{ tax|format_price:request }}</h6>
+                            {% if request.session.currency != 'VES' %}
+                            <small class="text-muted">{{ tax|format_price_bs }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <h6 class="font-weight-medium" style="color: #333;">Envío <small class="text-muted">({{ total_weight }} kg)</small></h6>
+                        <div class="text-right">
+                            <h6 class="font-weight-medium" style="color: #333; margin-bottom: 0;">{% if shipping_cost == 0 %}Gratis{% else %}{{ shipping_cost|format_price:request }}{% endif %}</h6>
+                            {% if request.session.currency != 'VES' and shipping_cost > 0 %}
+                            <small class="text-muted">{{ shipping_cost|format_price_bs }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-3">
+                    <div class="d-flex justify-content-between mt-2 align-items-center">
+                        <h5 style="color: #1A3B57; font-weight: bold; margin-bottom: 0;">Total a pagar:</h5>
+                        <div class="text-right">
+                            <h5 style="color: #1A3B57; font-weight: bold; margin-bottom: 0;">{{ grand_total|format_price:request }}</h5>
+                            {% if request.session.currency != 'VES' %}
+                            <small class="text-muted">{{ grand_total|format_price_bs }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'checkout' %}" class="btn btn-block font-weight-bold my-3 py-3" style="background-color: #39B54A; color: white;">Proceder al Pago</a>
+                    <a href="{% url 'store' %}" class="btn btn-block py-2" style="border: 1px solid #1A3B57; color: #1A3B57; font-weight: 500;">Seguir Comprando</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<!-- Cart End -->
 
 {% endblock %}

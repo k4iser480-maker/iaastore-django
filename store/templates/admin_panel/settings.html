@@ -1,0 +1,139 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block breadcrumb %}<span class="sep">›</span> Configuración{% endblock %}
+{% block page_title %}Configuración{% endblock %}
+{% block page_desc %}Gestiona la configuración y preferencias del sistema.{% endblock %}
+
+{% block content %}
+<div class="ap-grid-1-1">
+    <!-- Left Column -->
+    <div>
+        <!-- Site Info -->
+        <div class="ap-card" style="margin-bottom:20px;">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-globe mr-2"></i> Información del Sitio</h3>
+            </div>
+            <div class="ap-card-body">
+                <div class="ap-settings-section" style="padding-top:0;">
+                    <div class="ap-form-group">
+                        <label class="ap-label">Nombre del Sitio</label>
+                        <input type="text" class="ap-input" value="IAAStore" disabled>
+                    </div>
+                    <div class="ap-form-group">
+                        <label class="ap-label">Descripción</label>
+                        <input type="text" class="ap-input" value="Tu tienda de materiales de construcción" disabled>
+                    </div>
+                    <div class="ap-form-group" style="margin-bottom:0;">
+                        <label class="ap-label">URL del Sitio</label>
+                        <input type="text" class="ap-input" value="{{ request.get_host }}" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="ap-card">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-credit-card mr-2"></i> Datos de Pago</h3>
+            </div>
+            <div class="ap-card-body">
+                <div class="ap-settings-section" style="padding-top:0;">
+                    <div class="ap-settings-title">Pago Móvil</div>
+                    <div class="ap-settings-desc">Datos para recibir pagos por Pago Móvil</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="ap-form-group">
+                            <label class="ap-label">Teléfono</label>
+                            <input type="text" class="ap-input" value="0412-XXXXXXX" disabled>
+                        </div>
+                        <div class="ap-form-group">
+                            <label class="ap-label">Banco</label>
+                            <input type="text" class="ap-input" value="Banco Nacional" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="ap-settings-section">
+                    <div class="ap-settings-title">Zelle</div>
+                    <div class="ap-settings-desc">Datos para recibir pagos por Zelle</div>
+                    <div class="ap-form-group" style="margin-bottom:0;">
+                        <label class="ap-label">Email</label>
+                        <input type="text" class="ap-input" value="pagos@iaastore.com" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div>
+        <!-- System Info -->
+        <div class="ap-card" style="margin-bottom:20px;">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-server mr-2"></i> Información del Sistema</h3>
+            </div>
+            <div class="ap-card-body">
+                <div class="ap-sys-grid">
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Django</div>
+                        <div class="ap-sys-value">{{ django_version }}</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Python</div>
+                        <div class="ap-sys-value">{{ python_version }}</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Base de Datos</div>
+                        <div class="ap-sys-value">SQLite</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Stats -->
+        <div class="ap-card" style="margin-bottom:20px;">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-database mr-2"></i> Registros en BD</h3>
+            </div>
+            <div class="ap-card-body">
+                <div class="ap-sys-grid">
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Productos</div>
+                        <div class="ap-sys-value">{{ db_products }}</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Pedidos</div>
+                        <div class="ap-sys-value">{{ db_orders }}</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Usuarios</div>
+                        <div class="ap-sys-value">{{ db_users }}</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Reseñas</div>
+                        <div class="ap-sys-value">{{ db_reviews }}</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Categorías</div>
+                        <div class="ap-sys-value">{{ db_categories }}</div>
+                    </div>
+                    <div class="ap-sys-item">
+                        <div class="ap-sys-label">Wishlist</div>
+                        <div class="ap-sys-value">{{ db_wishlist }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="ap-card">
+            <div class="ap-card-header">
+                <h3 class="ap-card-title"><i class="fas fa-bolt mr-2"></i> Accesos Rápidos</h3>
+            </div>
+            <div class="ap-card-body" style="display:flex; flex-direction:column; gap:8px;">
+                <a href="{% url 'home' %}" target="_blank" class="ap-btn" style="justify-content:center;"><i class="fas fa-store"></i> Ver Tienda</a>
+                <a href="{% url 'admin_orders' %}" class="ap-btn" style="justify-content:center;"><i class="fas fa-shopping-bag"></i> Gestionar Pedidos</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

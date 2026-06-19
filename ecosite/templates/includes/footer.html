@@ -1,19 +1,44 @@
-<footer class="section-footer border-top">
-	<div class="container">
-		<section class="footer-bottom border-top row">
-			<div class="col-md-2">
-				<p class="text-muted"> &copy 2019 Company name </p>
-			</div>
-			<div class="col-md-8 text-md-center">
-				<span  class="px-2">info@pixsellz.io</span>
-				<span  class="px-2">+879-332-9375</span>
-				<span  class="px-2">Street name 123, Avanue abc</span>
-			</div>
-			<div class="col-md-2 text-md-right text-muted">
-				<i class="fab fa-lg fa-cc-visa"></i>
-				<i class="fab fa-lg fa-cc-paypal"></i>
-				<i class="fab fa-lg fa-cc-mastercard"></i>
-			</div>
-		</section>
-	</div><!-- //container -->
+{% load static %}
+<footer class="section-footer" style="background-color: #1A3B57; color: #FFFFFF; padding: 40px 0 20px 0;">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h6 style="font-family: 'Montserrat', sans-serif; color: #FFFFFF; font-weight: 700; margin-bottom: 15px;">Información Fiscal</h6>
+                <p class="mb-1">Industrias de Aislantes y Acero, I.A.A.</p>
+                <p class="mb-1">RIF: J310344680, C.A.</p>
+                <p class="mb-1">Calle Constantino Maradei Local nro s/n</p>
+                <p class="mb-1">Sector 1 La Ponderosa</p>
+                <p class="mb-0">Barcelona, Anzoátegui</p>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h6 style="font-family: 'Montserrat', sans-serif; color: #FFFFFF; font-weight: 700; margin-bottom: 15px;">Productos</h6>
+                <ul class="list-unstyled">
+                    {% for category in links %}
+                    <li class="mb-1"><a href="{{ category.get_url }}" style="color: #E0E0E0;">{{ category.category_name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 style="font-family: 'Montserrat', sans-serif; color: #FFFFFF; font-weight: 700; margin-bottom: 15px;">Formas de Pago</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-1" style="color: #E0E0E0;"><i class="fab fa-paypal mr-2"></i> PayPal</li>
+                    <li class="mb-1" style="color: #E0E0E0;"><i class="fa fa-mobile mr-2"></i> Pago Móvil</li>
+                    <li class="mb-1" style="color: #E0E0E0;"><i class="fa fa-dollar mr-2"></i> Zelle</li>
+                    <li class="mb-1" style="color: #E0E0E0;"><span class="mr-2" style="font-family: 'Montserrat', sans-serif; font-weight: 700;">C</span> Cashea</li>
+                </ul>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 style="font-family: 'Montserrat', sans-serif; color: #FFFFFF; font-weight: 700; margin-bottom: 15px;">Contacto</h6>
+                <p class="mb-1"><i class="fa fa-envelope mr-2"></i> info@iaacaven.com</p>
+                <p class="mb-0"><i class="fa fa-phone mr-2"></i> 0424-882-4015</p>
+            </div>
+
+        </div>
+        <hr style="border-color: rgba(255,255,255,0.2);">
+        <p class="text-center mb-0" style="color: #E0E0E0; font-size: 13px;">&copy; 2025 Industrias de Aislantes y Acero, I.A.A. Todos los derechos reservados.</p>
+    </div>
 </footer>

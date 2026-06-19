@@ -1,5 +1,5 @@
 from django import forms
-from .models import Account
+from .models import Account, ShippingAddress
 
 
 class RegistrationForm(forms.ModelForm):
@@ -44,3 +44,29 @@ class RegistrationForm(forms.ModelForm):
             'placeholder': 'Ingrese su correo electrónico',
             'class': 'form-control'
         })
+
+class AdminProfileForm(forms.ModelForm):
+    profile_picture = forms.ImageField(required=False, error_messages={'invalid': ("Solo archivos de imagen")}, widget=forms.FileInput)
+    
+    class Meta:
+        model = Account
+        fields = ['first_name', 'last_name', 'phone_number', 'profile_picture']
+
+    def __init__(self, *args, **kwargs):
+        super(AdminProfileForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'ap-input'
+
+class ShippingAddressForm(forms.ModelForm):
+    class Meta:
+        model = ShippingAddress
+        fields = ['first_name', 'last_name', 'phone', 'address_line_1', 'address_line_2', 'city']
+        
+    def __init__(self, *args, **kwargs):
+        super(ShippingAddressForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({
+                'class': 'form-control',
+                'required': 'required' if field != 'address_line_2' else False
+            })
+        self.fields['city'].widget.attrs.update({'class': 'form-control'})

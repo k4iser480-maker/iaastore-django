@@ -1,0 +1,48 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}
+<span class="sep">›</span> <a href="{% url 'admin_transportistas' %}">Transportistas</a>
+<span class="sep">›</span> Crear
+{% endblock %}
+{% block page_title %}Crear Transportista{% endblock %}
+{% block page_desc %}Registra un usuario existente como transportista.{% endblock %}
+
+{% block content %}
+<div class="ap-card" style="max-width:600px;">
+    {% include 'includes/alerts.html' %}
+    
+    <form method="POST" action="{% url 'admin_create_transportista' %}">
+        {% csrf_token %}
+        <div style="margin-bottom: 24px;">
+            <label class="ap-label" style="display:block; margin-bottom:8px;">Usuario</label>
+            <select name="user_id" class="ap-select" required style="width:100%;">
+                <option value="">Selecciona un usuario</option>
+                {% for u in users %}
+                <option value="{{ u.id }}">{{ u.first_name }} {{ u.last_name }} ({{ u.email }})</option>
+                {% endfor %}
+            </select>
+            <small style="color:var(--ap-text-muted); display:block; margin-top:4px;">Solo se muestran usuarios que no son administradores ni transportistas.</small>
+        </div>
+        
+        <div style="margin-bottom: 24px;">
+            <label class="ap-label" style="display:block; margin-bottom:8px;">Teléfono de Contacto</label>
+            <input type="text" name="telefono" class="ap-input" required placeholder="Ej: 0414-1234567" style="width:100%;">
+        </div>
+        
+        <div style="margin-bottom: 24px;">
+            <label class="ap-label" style="display:block; margin-bottom:8px;">Vehículo (Opcional)</label>
+            <input type="text" name="vehiculo" class="ap-input" placeholder="Ej: Moto, Furgoneta, Placa ABC-123" style="width:100%;">
+        </div>
+        
+        <div style="margin-bottom: 24px;">
+            <label class="ap-label" style="display:block; margin-bottom:8px;">Email para Notificaciones (Opcional)</label>
+            <input type="email" name="email_notificaciones" class="ap-input" placeholder="Deja en blanco para usar el correo del usuario" style="width:100%;">
+        </div>
+        
+        <div style="display:flex; gap:12px; margin-top:24px;">
+            <button type="submit" class="ap-btn ap-btn-primary">Registrar Transportista</button>
+            <a href="{% url 'admin_transportistas' %}" class="ap-btn ap-btn-outline" style="text-decoration:none; padding:8px 16px;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

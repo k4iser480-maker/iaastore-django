@@ -1,0 +1,144 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}
+<span class="sep">›</span> <a href="{% url 'admin_users' %}">Usuarios</a> <span class="sep">›</span> {{ action }}
+{% endblock %}
+
+{% block page_title %}{{ action }} Usuario{% endblock %}
+{% block page_desc %}Configura la información del usuario y los roles asignados.{% endblock %}
+
+{% block content %}
+<style>
+    /* Custom Checkbox as Switch */
+    .ap-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 22px;
+    }
+    .ap-switch input { opacity: 0; width: 0; height: 0; }
+    .ap-slider {
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #ccc; transition: .4s; border-radius: 34px;
+    }
+    .ap-slider:before {
+        position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px;
+        background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .ap-slider { background-color: var(--ap-accent); }
+    input:checked + .ap-slider:before { transform: translateX(18px); }
+
+    /* Roles grid */
+    .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 10px;
+    }
+    .role-card {
+        border: 1px solid var(--ap-border);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: #f9fafb;
+    }
+    .role-card.is-super { background: rgba(139,92,246,0.05); border-color: rgba(139,92,246,0.3); }
+</style>
+
+<div class="ap-card">
+    <div class="ap-card-body">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="ap-settings-title" style="margin-bottom: 15px;"><i class="fas fa-id-card mr-2"></i> Datos Generales</div>
+            <div class="ap-grid-2" style="margin-bottom: 24px;">
+                {% if action == 'Crear' %}
+                    {% for field in form %}
+                    <div class="ap-form-group">
+                        <label class="ap-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div style="color: var(--ap-red); font-size: 12px;">{{ field.errors }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="ap-form-group">
+                        <label class="ap-label">Nombre</label>
+                        <input type="text" class="ap-input" name="first_name" value="{{ edit_user.first_name }}" required>
+                    </div>
+                    <div class="ap-form-group">
+                        <label class="ap-label">Apellido</label>
+                        <input type="text" class="ap-input" name="last_name" value="{{ edit_user.last_name }}" required>
+                    </div>
+                    <div class="ap-form-group">
+                        <label class="ap-label">Email</label>
+                        <input type="email" class="ap-input" value="{{ edit_user.email }}" disabled>
+                        <div class="ap-form-help">El email no puede ser modificado.</div>
+                    </div>
+                    <div class="ap-form-group">
+                        <label class="ap-label">Teléfono</label>
+                        <input type="text" class="ap-input" name="phone_number" value="{{ edit_user.phone_number }}">
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if action == 'Editar' %}
+            <div class="ap-settings-title" style="margin-bottom: 15px;"><i class="fas fa-power-off mr-2"></i> Estado de la Cuenta</div>
+            <div style="margin-bottom: 24px; padding: 16px; border: 1px solid var(--ap-border); border-radius: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">Cuenta Activa</div>
+                        <div style="font-size: 12px; color: var(--ap-text-muted);">Si desactivas la cuenta, el usuario no podrá iniciar sesión.</div>
+                    </div>
+                    <label class="ap-switch">
+                        <input type="checkbox" name="is_active" {% if edit_user.is_active %}checked{% endif %} {% if edit_user.is_superadmin %}disabled{% endif %}>
+                        <span class="ap-slider"></span>
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="ap-settings-title" style="margin-bottom: 15px;"><i class="fas fa-tags mr-2"></i> Asignación de Roles</div>
+            {% if edit_user.is_superadmin %}
+            <div style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+                <i class="fas fa-crown" style="font-size: 24px; color: var(--ap-purple);"></i>
+                <div>
+                    <div style="font-weight: 600; color: var(--ap-purple);">Super Administrador</div>
+                    <div style="font-size: 13px; color: var(--ap-text-secondary);">Este usuario tiene acceso total y sin restricciones al sistema. No requiere asignación de roles individuales.</div>
+                </div>
+            </div>
+            {% elif user.is_superadmin %}
+            <div class="roles-grid" style="margin-bottom: 24px;">
+                {% for role in roles %}
+                <label class="role-card" style="cursor: pointer;">
+                    <input type="checkbox" name="roles" value="{{ role.id }}" style="margin-top: 4px;" {% if role.id in user_roles %}checked{% endif %}>
+                    <div>
+                        <div style="font-weight: 600; font-size: 13px;">{{ role.name }}</div>
+                        <div style="font-size: 11px; color: var(--ap-text-muted);">{{ role.description|truncatechars:40 }}</div>
+                    </div>
+                </label>
+                {% empty %}
+                <div style="grid-column: 1 / -1; color: var(--ap-text-muted); font-size: 13px;">
+                    No hay roles creados. <a href="{% url 'admin_create_role' %}">Crear un rol</a>.
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+                <i class="fas fa-lock" style="font-size: 20px; color: #d97706;"></i>
+                <div>
+                    <div style="font-weight: 600; color: #d97706;">Asignación restringida</div>
+                    <div style="font-size: 13px; color: var(--ap-text-secondary);">Solo el Super Administrador puede asignar o modificar roles de usuario.</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 30px;">
+                <a href="{% url 'admin_users' %}" class="ap-btn">Cancelar</a>
+                <button type="submit" class="ap-btn ap-btn-primary"><i class="fas fa-save"></i> Guardar Usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

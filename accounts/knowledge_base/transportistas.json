@@ -1,0 +1,21 @@
+{
+  "module": "transportistas",
+  "title": "Transportistas",
+  "permission": "view_orders",
+  "questions": [
+    "agregar conductor",
+    "nuevo transportista",
+    "gestionar entregas",
+    "credenciales transportista"
+  ],
+  "answer": "Aquí administras al personal encargado de la logística de entregas.\n\n- **Registro:** Puedes añadir nuevos transportistas con sus datos básicos y vehículo.\n- **Credenciales:** Al registrarlos, se generará una cuenta para que el transportista inicie sesión y vea solo los pedidos que tiene asignados.",
+  "keywords": [
+    "nuevo",
+    "entregas",
+    "conductor",
+    "gestionar",
+    "agregar",
+    "transportista",
+    "credenciales"
+  ]
+}

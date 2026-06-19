@@ -1,0 +1,74 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}<span class="sep">›</span> Clientes{% endblock %}
+{% block page_title %}Clientes{% endblock %}
+{% block page_desc %}Vista y gestión de tu base de clientes.{% endblock %}
+
+{% block content %}
+<div class="ap-toolbar">
+    <div class="ap-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" class="ap-input" id="customerSearch" placeholder="Buscar por nombre o email...">
+    </div>
+</div>
+
+<div class="ap-card">
+    <div style="overflow-x:auto;">
+        <table class="ap-table" id="customersTable">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Estado</th>
+                    <th>Fecha de Registro</th>
+                    <th style="text-align:center;">Pedidos</th>
+                    <th style="text-align:right;">Total Gastado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr data-name="{{ customer.first_name }} {{ customer.last_name }}|{{ customer.email }}">
+                    <td>
+                        <div class="ap-user-cell">
+                            <div class="ap-avatar {% cycle 'green' 'blue' 'purple' 'amber' 'red' %}">{{ customer.first_name|first }}{{ customer.last_name|first }}</div>
+                            <div>
+                                <div class="ap-user-name">{{ customer.first_name }} {{ customer.last_name }}</div>
+                                <div class="ap-user-email">{{ customer.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if customer.is_active %}
+                        <span class="ap-badge ap-badge-green"><span class="dot"></span> Activo</span>
+                        {% else %}
+                        <span class="ap-badge ap-badge-gray"><span class="dot"></span> Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--ap-text-secondary);">{{ customer.date_joined|date:"d M Y" }}</td>
+                    <td style="text-align:center; font-weight:500;">{{ customer.order_count }}</td>
+                    <td style="text-align:right; font-weight:600;">${{ customer.total_spent|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center; color:var(--ap-text-muted); padding:40px;">No hay clientes registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="ap-pagination">
+        <span>{{ customers|length }} clientes registrados</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csearch = document.getElementById('customerSearch');
+const crows = document.querySelectorAll('#customersTable tbody tr');
+csearch.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    crows.forEach(row => {
+        const data = (row.dataset.name || '').toLowerCase();
+        row.style.display = !q || data.includes(q) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

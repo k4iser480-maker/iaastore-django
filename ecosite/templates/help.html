@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y" style="background-color: #f5f5f5; padding-top: 40px; padding-bottom: 60px;">
+    <div class="container">
+        <header class="section-heading text-center mb-5">
+            <h2 class="title-section" style="color: #1A3B57; font-weight: 700;">Centro de Ayuda</h2>
+            <p style="color: #6c757d; font-size: 1.1rem;">Encuentra respuestas a tus preguntas y toda la información que necesitas.</p>
+        </header>
+
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="card shadow-sm border-0 sticky-top" style="top: 20px; z-index: 1;">
+                    <div class="list-group list-group-flush" id="help-menu">
+                        <a href="#faq" class="list-group-item list-group-item-action font-weight-bold" style="color: #1A3B57; border-left: 4px solid #39B54A;"><i class="fa fa-question-circle mr-2 text-primary"></i> Preguntas Frecuentes</a>
+                        <a href="#shipping" class="list-group-item list-group-item-action font-weight-bold" style="color: #1A3B57;"><i class="fa fa-truck mr-2 text-primary"></i> Políticas de Envío</a>
+                        <a href="#returns" class="list-group-item list-group-item-action font-weight-bold" style="color: #1A3B57;"><i class="fa fa-undo mr-2 text-primary"></i> Devoluciones</a>
+                        <a href="#payment" class="list-group-item list-group-item-action font-weight-bold" style="color: #1A3B57;"><i class="fa fa-credit-card mr-2 text-primary"></i> Métodos de Pago</a>
+                        <a href="#tracking" class="list-group-item list-group-item-action font-weight-bold" style="color: #1A3B57;"><i class="fa fa-map-marker-alt mr-2 text-primary"></i> Seguimiento de Pedidos</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <!-- FAQs -->
+                <div id="faq" class="card shadow-sm border-0 mb-4 p-4 help-section">
+                    <h3 style="color: #1A3B57; border-bottom: 2px solid #E0E0E0; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fa fa-question-circle text-primary mr-2"></i> Preguntas Frecuentes
+                    </h3>
+                    <div class="accordion" id="accordionFAQ">
+                        <div class="card border-light mb-2">
+                            <div class="card-header bg-white p-0" id="headingOne">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left text-dark font-weight-bold text-decoration-none p-3" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        ¿Cómo puedo realizar un pedido? <i class="fa fa-angle-down float-right mt-1"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionFAQ">
+                                <div class="card-body text-muted pt-0">
+                                    Para realizar un pedido, simplemente navega por nuestra tienda, añade los productos que desees a tu carrito y procede al pago. Puedes crear una cuenta para gestionar tus pedidos más fácilmente o realizar la compra como invitado.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card border-light mb-2">
+                            <div class="card-header bg-white p-0" id="headingTwo">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left text-dark font-weight-bold text-decoration-none p-3 collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        ¿Tienen tienda física? <i class="fa fa-angle-down float-right mt-1"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionFAQ">
+                                <div class="card-body text-muted pt-0">
+                                    Sí, estamos ubicados en Barcelona, Av. Fuerzas Armadas, Centro Industrial. Puedes visitarnos para ver los materiales en persona o recoger tus pedidos.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping -->
+                <div id="shipping" class="card shadow-sm border-0 mb-4 p-4 help-section">
+                    <h3 style="color: #1A3B57; border-bottom: 2px solid #E0E0E0; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fa fa-truck text-primary mr-2"></i> Políticas de Envío
+                    </h3>
+                    <p class="text-muted">Ofrecemos un servicio de entrega local para asegurar que tus materiales de construcción lleguen de forma segura y oportuna.</p>
+                    <ul class="list-group list-group-flush text-muted mb-3">
+                        <li class="list-group-item bg-transparent px-0"><i class="fa fa-check text-success mr-2"></i> Realizamos envíos a zonas específicas (Ej. Barcelona, Lechería).</li>
+                        <li class="list-group-item bg-transparent px-0"><i class="fa fa-star text-warning mr-2"></i> <strong>¡Envío GRATIS en pedidos superiores a $500!</strong></li>
+                        <li class="list-group-item bg-transparent px-0"><i class="fa fa-check text-success mr-2"></i> El costo del envío se calcula automáticamente durante el proceso de pago.</li>
+                        <li class="list-group-item bg-transparent px-0"><i class="fa fa-check text-success mr-2"></i> También puedes optar por recoger tu pedido en nuestra tienda física sin costo adicional.</li>
+                    </ul>
+                    <div class="alert alert-info border-0 rounded" style="background-color: #e9f2fb; color: #1A3B57;">
+                        <i class="fa fa-info-circle mr-2"></i> Los tiempos de entrega pueden variar según el volumen del pedido y la disponibilidad de los productos.
+                    </div>
+                </div>
+
+                <!-- Returns -->
+                <div id="returns" class="card shadow-sm border-0 mb-4 p-4 help-section">
+                    <h3 style="color: #1A3B57; border-bottom: 2px solid #E0E0E0; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fa fa-undo text-primary mr-2"></i> Políticas de Devolución
+                    </h3>
+                    <p class="text-muted">Si no estás satisfecho con tu compra o recibiste un producto defectuoso, estamos aquí para ayudarte.</p>
+                    
+                    <div class="p-4 rounded mb-3" style="background-color: #fcf8e3; border-left: 4px solid #f0ad4e;">
+                        <h5 style="color: #8a6d3b; font-weight: 600;"><i class="fa fa-exclamation-triangle mr-2"></i> ¿Cómo solicitar una devolución?</h5>
+                        <p class="mb-2" style="color: #8a6d3b;">Para solicitar una devolución, es indispensable comunicarte primero con nuestro equipo de soporte.</p>
+                        <ul class="mb-0 pl-3" style="color: #8a6d3b;">
+                            <li>Correo de soporte: <strong>info@iaacaven.com</strong></li>
+                            <li>WhatsApp / Teléfono: <strong>0424-882-4015</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <p class="text-muted"><strong>Condiciones Generales:</strong></p>
+                    <ul class="list-unstyled text-muted">
+                        <li class="mb-2"><i class="fa fa-angle-right text-primary mr-2"></i> Tienes un plazo de 7 días continuos desde la recepción del producto para solicitar la devolución.</li>
+                        <li class="mb-2"><i class="fa fa-angle-right text-primary mr-2"></i> El producto debe estar en su estado original, sin uso y con sus empaques correspondientes.</li>
+                        <li><i class="fa fa-angle-right text-primary mr-2"></i> Ciertos materiales a medida o cortados no admiten devoluciones.</li>
+                    </ul>
+                </div>
+
+                <!-- Payment Methods -->
+                <div id="payment" class="card shadow-sm border-0 mb-4 p-4 help-section">
+                    <h3 style="color: #1A3B57; border-bottom: 2px solid #E0E0E0; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fa fa-credit-card text-primary mr-2"></i> Métodos de Pago
+                    </h3>
+                    <p class="text-muted">Ofrecemos diversas opciones de pago, adaptadas a tus necesidades tanto en moneda nacional como extranjera. Haz clic en cada método para ver las instrucciones detalladas.</p>
+                    
+                    <div class="accordion" id="accordionPayment">
+                        <!-- Pago Móvil -->
+                        <div class="card border-light mb-2">
+                            <div class="card-header bg-white p-0" id="headingPM">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left text-dark font-weight-bold text-decoration-none p-3 d-flex align-items-center" type="button" data-toggle="collapse" data-target="#collapsePM" aria-expanded="false" aria-controls="collapsePM">
+                                        <i class="fa fa-mobile-alt text-primary mr-3 fa-lg"></i> Pago Móvil <i class="fa fa-angle-down ml-auto"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapsePM" class="collapse" aria-labelledby="headingPM" data-parent="#accordionPayment">
+                                <div class="card-body text-muted pt-0">
+                                    <p>Realiza tu pago móvil con los siguientes datos:</p>
+                                    <ul class="list-unstyled mb-0">
+                                        <li><strong>Banco:</strong> Banesco (0134)</li>
+                                        <li><strong>RIF:</strong> J-12345678</li>
+                                        <li><strong>Teléfono:</strong> 0414-1234567</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Zelle -->
+                        <div class="card border-light mb-2">
+                            <div class="card-header bg-white p-0" id="headingZelle">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left text-dark font-weight-bold text-decoration-none p-3 d-flex align-items-center" type="button" data-toggle="collapse" data-target="#collapseZelle" aria-expanded="false" aria-controls="collapseZelle">
+                                        <i class="fa fa-university text-primary mr-3 fa-lg"></i> Zelle (USD) <i class="fa fa-angle-down ml-auto"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseZelle" class="collapse" aria-labelledby="headingZelle" data-parent="#accordionPayment">
+                                <div class="card-body text-muted pt-0">
+                                    <p>Para pagos vía Zelle, utiliza esta información:</p>
+                                    <ul class="list-unstyled mb-0">
+                                        <li><strong>Titular:</strong> Industrias de Aislantes y Acero, I.A.A.</li>
+                                        <li><strong>Banco:</strong> Banesco USA</li>
+                                        <li><strong>Correo:</strong> zelle@iaacaven.com</li>
+                                    </ul>
+                                    <p class="mt-2 small text-danger"><i class="fa fa-exclamation-triangle"></i> No olvides colocar tu número de pedido en el concepto.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cashea -->
+                        <div class="card border-light mb-2">
+                            <div class="card-header bg-white p-0" id="headingCashea">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left text-dark font-weight-bold text-decoration-none p-3 d-flex align-items-center" type="button" data-toggle="collapse" data-target="#collapseCashea" aria-expanded="false" aria-controls="collapseCashea">
+                                        <img src="{% static 'images/cashea1.png' %}" alt="Cashea" style="height: 20px; width: auto; margin-right: 15px;"> Cashea <i class="fa fa-angle-down ml-auto"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseCashea" class="collapse" aria-labelledby="headingCashea" data-parent="#accordionPayment">
+                                <div class="card-body text-muted pt-0">
+                                    <p>Compra ahora y paga después con Cashea:</p>
+                                    <ol class="pl-3 mb-0">
+                                        <li>Abre la app de <strong>Cashea</strong>.</li>
+                                        <li>Escanea nuestro código QR o busca <strong>"IAA Store"</strong>.</li>
+                                        <li>Realiza el pago de tu inicial.</li>
+                                        <li>Sube el comprobante al finalizar tu pedido en nuestra web.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PayPal -->
+                        <div class="card border-light mb-2">
+                            <div class="card-header bg-white p-0" id="headingPaypal">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left text-dark font-weight-bold text-decoration-none p-3 d-flex align-items-center" type="button" data-toggle="collapse" data-target="#collapsePaypal" aria-expanded="false" aria-controls="collapsePaypal">
+                                        <i class="fab fa-paypal text-primary mr-3 fa-lg"></i> PayPal <i class="fa fa-angle-down ml-auto"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapsePaypal" class="collapse" aria-labelledby="headingPaypal" data-parent="#accordionPayment">
+                                <div class="card-body text-muted pt-0">
+                                    <p>Pago seguro y automático a través de PayPal.</p>
+                                    <ul class="list-unstyled mb-0">
+                                        <li><i class="fa fa-info-circle mr-1"></i> Se aplica una comisión de 5.4% + $0.30.</li>
+                                        <li><i class="fa fa-check-circle mr-1"></i> La confirmación es inmediata.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transferencia -->
+                        <div class="card border-light mb-2">
+                            <div class="card-header bg-white p-0" id="headingBank">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left text-dark font-weight-bold text-decoration-none p-3 d-flex align-items-center" type="button" data-toggle="collapse" data-target="#collapseBank" aria-expanded="false" aria-controls="collapseBank">
+                                        <i class="fa fa-university text-primary mr-3 fa-lg"></i> Transferencia Bancaria <i class="fa fa-angle-down ml-auto"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseBank" class="collapse" aria-labelledby="headingBank" data-parent="#accordionPayment">
+                                <div class="card-body text-muted pt-0">
+                                    <p>Aceptamos transferencias de todos los bancos nacionales.</p>
+                                    <p class="mb-0">Para obtener los datos bancarios completos, por favor selecciona este método durante el proceso de pago o contáctanos directamente.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Tracking -->
+                <div id="tracking" class="card shadow-sm border-0 mb-4 p-4 help-section">
+                    <h3 style="color: #1A3B57; border-bottom: 2px solid #E0E0E0; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fa fa-map-marker-alt text-primary mr-2"></i> Seguimiento de Pedidos
+                    </h3>
+                    <p class="text-muted">Mantente informado sobre el estado de tus compras en todo momento.</p>
+                    <div class="d-flex mb-3">
+                        <div class="mr-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">1</div>
+                        </div>
+                        <div>
+                            <h6 class="font-weight-bold mt-2">Inicia Sesión</h6>
+                            <p class="text-muted small">Accede a tu cuenta de usuario desde el menú superior.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-3">
+                        <div class="mr-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">2</div>
+                        </div>
+                        <div>
+                            <h6 class="font-weight-bold mt-2">Ve a tu Dashboard</h6>
+                            <p class="text-muted small">Dirígete a la sección de "Mis Pedidos".</p>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="mr-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">3</div>
+                        </div>
+                        <div>
+                            <h6 class="font-weight-bold mt-2">Verifica el Estado</h6>
+                            <p class="text-muted small">Allí podrás ver si tu pedido está "Pendiente", "Aceptado" o "Completado".</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Styling for the sticky menu */
+    #help-menu .list-group-item {
+        transition: all 0.2s ease;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    #help-menu .list-group-item:last-child {
+        border-bottom: none;
+    }
+    #help-menu .list-group-item:hover {
+        background-color: #f8f9fa;
+        color: #39B54A !important;
+        padding-left: 25px;
+    }
+    .text-primary {
+        color: #39B54A !important;
+    }
+    .bg-primary {
+        background-color: #39B54A !important;
+    }
+    
+    /* Smooth scrolling fix */
+    html {
+        scroll-behavior: smooth;
+    }
+    .help-section {
+        scroll-margin-top: 20px;
+    }
+</style>
+
+<script>
+    // Simple script to highlight active section in the menu
+    $(document).ready(function() {
+        $('#help-menu a').on('click', function() {
+            $('#help-menu a').css('border-left', 'none');
+            $(this).css('border-left', '4px solid #39B54A');
+        });
+    });
+</script>
+{% endblock %}

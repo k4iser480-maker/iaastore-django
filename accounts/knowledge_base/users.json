@@ -1,0 +1,20 @@
+{
+  "module": "users",
+  "title": "Usuarios",
+  "permission": "view_users",
+  "questions": [
+    "gestionar usuarios",
+    "ver clientes",
+    "crear administrador",
+    "staff"
+  ],
+  "answer": "La vista de Usuarios te permite gestionar todas las cuentas con acceso al sistema.\n\nDesde aquí puedes:\n- Ver la lista de todos los clientes y personal administrativo de la tienda.\n- Crear nuevos usuarios de tipo *staff*.\n- Asignar roles específicos a los miembros de tu equipo.",
+  "keywords": [
+    "staff",
+    "usuarios",
+    "gestionar",
+    "crear",
+    "administrador",
+    "clientes"
+  ]
+}

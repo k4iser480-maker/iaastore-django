@@ -1,0 +1,25 @@
+{
+  "module": "backups",
+  "title": "Respaldos (Backups)",
+  "permission": "view_backups",
+  "questions": [
+    "como hacer respaldo",
+    "copia de seguridad",
+    "backup",
+    "restaurar",
+    "descargar base de datos"
+  ],
+  "answer": "El módulo de Respaldos protege la información de tu empresa.\n\nOpciones disponibles:\n- **Generación Manual:** Crea un archivo `.zip` cifrado de la base de datos con un clic.\n- **Programación:** Configura un intervalo para que el sistema haga copias automáticas.\n- Las copias también pueden enviarse por correo electrónico.",
+  "keywords": [
+    "copia",
+    "descargar",
+    "datos",
+    "restaurar",
+    "hacer",
+    "respaldo",
+    "como",
+    "backup",
+    "seguridad",
+    "base"
+  ]
+}

@@ -1,0 +1,328 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load rbac_tags %}
+
+{% block breadcrumb %}<span class="sep">›</span> Productos{% endblock %}
+{% block page_title %}Productos{% endblock %}
+{% block page_desc %}Explora y gestiona tu catálogo de productos.{% endblock %}
+
+{% block content %}
+<style>
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+}
+.filter-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 250px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+    z-index: 100;
+    border-radius: 8px;
+    border: 1px solid var(--ap-border);
+    padding: 15px;
+    margin-top: 5px;
+    left: 0;
+}
+.filter-dropdown-content.show {
+    display: block;
+}
+.filter-group {
+    margin-bottom: 12px;
+}
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+</style>
+<div class="ap-toolbar" style="flex-wrap: wrap; gap: 10px; align-items: center;">
+    <!-- Búsqueda -->
+    <div class="ap-search-wrap" style="flex: 1; min-width: 250px;">
+        <i class="fas fa-search"></i>
+        <input type="text" class="ap-input" id="productSearch" placeholder="Buscar por Nombre o Código...">
+    </div>
+
+    <div class="filter-dropdown">
+        <button class="ap-btn" onclick="toggleFilterDropdown()" style="background: #fff; color: var(--ap-text); border: 1px solid var(--ap-border);">
+            <i class="fas fa-filter"></i> Filtros
+        </button>
+        <div class="filter-dropdown-content" id="filterDropdown">
+            <div class="filter-group">
+                <label class="ap-label" style="font-size: 12px;">Categoría</label>
+                <select class="ap-select" id="catFilter" style="width: 100%;">
+                    <option value="">Todas las Categorías</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.category_name }}">{{ cat.category_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="ap-label" style="font-size: 12px;">Estado</label>
+                <select class="ap-select" id="statusFilter" style="width: 100%;">
+                    <option value="">Todos los Estados</option>
+                    <option value="available">Disponible</option>
+                    <option value="out_of_stock">Agotado</option>
+                    <option value="inactive">Inactivo</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="ap-label" style="font-size: 12px;">Rango de Precio ($)</label>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="number" class="ap-input" id="minPrice" placeholder="Min" min="0">
+                    <span>-</span>
+                    <input type="number" class="ap-input" id="maxPrice" placeholder="Max" min="0">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-left: auto;">
+        {% if user|can:'view_inventory' or user.is_superadmin %}
+        <div class="filter-dropdown">
+            <button class="ap-btn" onclick="toggleExportDropdown()" style="background: #10b981; color: #fff; border: none;" title="Opciones de Exportación">
+                <i class="fas fa-download"></i> Exportar
+            </button>
+            <div class="filter-dropdown-content" id="exportDropdown" style="min-width: 160px; right: 0; left: auto;">
+                <a href="#" onclick="exportProductsPDF(); return false;" class="ap-btn" style="width:100%; margin-bottom:8px; justify-content:flex-start; border: 1px solid var(--ap-border); background: #fff; color: var(--ap-text);">
+                    <i class="fas fa-file-pdf" style="color:var(--ap-red); width: 20px;"></i> a PDF
+                </a>
+                <a href="#" onclick="exportProductsExcel(); return false;" class="ap-btn" style="width:100%; justify-content:flex-start; border: 1px solid var(--ap-border); background: #fff; color: var(--ap-text);">
+                    <i class="fas fa-file-excel" style="color:#10b981; width: 20px;"></i> a Excel
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if user|can:'edit_inventory' or user.is_superadmin %}
+        <button onclick="openImportModal()" class="ap-btn" style="background: #f59e0b; color: #fff; border: none;" title="Importar desde Excel">
+            <i class="fas fa-file-upload"></i> Importar
+        </button>
+        {% endif %}
+
+        {% if user|can:'create_inventory' or user.is_superadmin %}
+        <a href="{% url 'admin_create_product' %}" class="ap-btn ap-btn-primary">
+            <i class="fas fa-plus"></i> Nuevo
+        </a>
+        {% endif %}
+
+
+    </div>
+</div>
+
+<div class="ap-card">
+    <div style="overflow-x:auto;">
+        <table class="ap-table" id="productsTable">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Código</th>
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Stock</th>
+                    <th style="text-align:right;">Precio</th>
+                    <th>Creado</th>
+                    <th style="text-align:center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr data-name="{{ product.product_name|lower }}" data-sku="{{ product.sku|lower }}" data-cat="{{ product.Category.category_name }}" data-status="{% if product.is_available and product.stock > 0 %}available{% elif product.stock <= 0 %}out_of_stock{% else %}inactive{% endif %}" data-price="{{ product.price }}">
+                    <td>
+                        <div class="ap-user-cell">
+                            {% if product.images %}
+                            <img src="{{ product.images.url }}" style="width:40px;height:40px;border-radius:8px;object-fit:contain;border:1px solid var(--ap-border);background:#fff;" alt="">
+                            {% else %}
+                            <div class="ap-avatar blue"><i class="fas fa-box" style="font-size:14px;"></i></div>
+                            {% endif %}
+                            <div>
+                                <div class="ap-user-name">{{ product.product_name }}</div>
+                                <div class="ap-user-email">{{ product.slug }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-family: monospace; font-weight: 600; color: #555; letter-spacing: 0.5px;">{{ product.sku }}</td>
+                    <td><span class="ap-badge ap-badge-gray">{{ product.Category.category_name }}</span></td>
+                    <td>
+                        {% if product.is_available and product.stock > 0 %}
+                        <span class="ap-badge ap-badge-green"><span class="dot"></span> Disponible</span>
+                        {% elif product.stock <= 0 %}
+                        <span class="ap-badge ap-badge-red"><span class="dot"></span> Agotado</span>
+                        {% else %}
+                        <span class="ap-badge ap-badge-amber"><span class="dot"></span> Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:500;">{{ product.stock }}</td>
+                    <td style="text-align:right; font-weight:600;">${{ product.price }}</td>
+                    <td style="color:var(--ap-text-secondary);">{{ product.created_date|date:"d M Y" }}</td>
+                    <td style="text-align:center;">
+                        <div style="display: flex; gap: 6px; justify-content: center;">
+                            {% if user|can:'edit_inventory' or user.is_superadmin %}
+                            <a href="{% url 'admin_edit_product' product.id %}" class="ap-btn-icon" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% endif %}
+                            <form method="POST" action="{% url 'admin_toggle_product' product.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="ap-btn-icon" title="{% if product.is_available %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="fas {% if product.is_available %}fa-eye{% else %}fa-eye-slash{% endif %}"></i>
+                                </button>
+                            </form>
+
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; color:var(--ap-text-muted); padding:40px;">No hay productos.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="ap-pagination">
+        <span>{{ products|length }} productos en total</span>
+    </div>
+</div>
+
+
+
+<!-- ===== MODAL: Importar Excel ===== -->
+{% if user|can:'edit_inventory' or user.is_superadmin %}
+<div class="ap-modal-overlay" id="importModal">
+    <div class="ap-modal">
+        <div class="ap-modal-header">
+            <h3><i class="fas fa-file-upload" style="color:#f59e0b;"></i> Importar Productos (Excel)</h3>
+            <button class="ap-modal-close" onclick="closeImportModal()">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'admin_import_products' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="ap-modal-body">
+                <p style="color: var(--ap-text-secondary); margin-bottom: 16px;">
+                    Sube el archivo <strong>.xlsx</strong> generado por el sistema. El sistema actualizará el stock de los productos existentes y creará los nuevos (en estado inactivo hasta que agregues su foto).
+                </p>
+                <div class="ap-form-group">
+                    <label class="ap-label">Archivo Excel</label>
+                    <input type="file" name="excel_file" accept=".xlsx" class="ap-input" required>
+                </div>
+            </div>
+            <div class="ap-modal-footer">
+                <button type="button" class="ap-btn" onclick="closeImportModal()">Cancelar</button>
+                <button type="submit" class="ap-btn ap-btn-primary" style="background:#f59e0b; border-color:#f59e0b;">
+                    <i class="fas fa-upload"></i> Subir e Importar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const psearch = document.getElementById('productSearch');
+const catFilter = document.getElementById('catFilter');
+const statusFilter = document.getElementById('statusFilter');
+const minPrice = document.getElementById('minPrice');
+const maxPrice = document.getElementById('maxPrice');
+const prows = document.querySelectorAll('#productsTable tbody tr');
+
+function filterProducts() {
+    const q = psearch.value.toLowerCase();
+    const c = catFilter.value;
+    const s = statusFilter.value;
+    const min = parseFloat(minPrice.value) || 0;
+    const max = parseFloat(maxPrice.value) || Infinity;
+
+    prows.forEach(row => {
+        const name = (row.dataset.name || '').toLowerCase();
+        const sku = (row.dataset.sku || '').toLowerCase();
+        const cat = row.dataset.cat || '';
+        const status = row.dataset.status || '';
+        const price = parseFloat(row.dataset.price) || 0;
+
+        const matchSearch = !q || name.includes(q) || sku.includes(q);
+        const matchCat = !c || cat === c;
+        const matchStatus = !s || status === s;
+        const matchPrice = price >= min && price <= max;
+
+        row.style.display = (matchSearch && matchCat && matchStatus && matchPrice) ? '' : 'none';
+    });
+}
+
+[psearch, minPrice, maxPrice].forEach(el => {
+    if(el) el.addEventListener('input', filterProducts);
+});
+if (catFilter) catFilter.addEventListener('change', filterProducts);
+if (statusFilter) statusFilter.addEventListener('change', filterProducts);
+
+function toggleFilterDropdown() {
+    document.getElementById("filterDropdown").classList.toggle("show");
+}
+
+function toggleExportDropdown() {
+    document.getElementById("exportDropdown").classList.toggle("show");
+}
+
+// Close dropdown if clicked outside
+window.addEventListener('click', function(e) {
+    if (!e.target.closest('.filter-dropdown')) {
+        const dropdown = document.getElementById("filterDropdown");
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        }
+        const exportDropdown = document.getElementById("exportDropdown");
+        if (exportDropdown && exportDropdown.classList.contains('show')) {
+            exportDropdown.classList.remove('show');
+        }
+    }
+});
+
+// ===== Export =====
+function exportProductsExcel() {
+    const q = psearch.value.toLowerCase();
+    const c = catFilter.value;
+    const s = statusFilter.value;
+    const min = minPrice.value;
+    const max = maxPrice.value;
+    window.location.href = `{% url 'admin_export_products' %}?q=${encodeURIComponent(q)}&c=${encodeURIComponent(c)}&s=${encodeURIComponent(s)}&min=${encodeURIComponent(min)}&max=${encodeURIComponent(max)}`;
+}
+
+function exportProductsPDF() {
+    const d = new Date().toLocaleDateString('es-ES');
+    let filters = [];
+    if (psearch.value) filters.push(`Búsqueda: "${psearch.value}"`);
+    if (catFilter.value) filters.push(`Categoría: ${catFilter.options[catFilter.selectedIndex].text}`);
+    if (statusFilter.value) filters.push(`Estado: ${statusFilter.options[statusFilter.selectedIndex].text}`);
+    if (minPrice.value || maxPrice.value) filters.push(`Precio: ${minPrice.value||0} - ${maxPrice.value||'max'}`);
+    
+    const meta = {
+        user: "{{ user.first_name|default:user.username }} {{ user.last_name }}",
+        date: d,
+        filters: filters.length > 0 ? filters.join(" | ") : "Ninguno"
+    };
+    // The "Acciones" column is index 7
+    if (typeof exportTableToPDF === 'function') {
+        exportTableToPDF('productsTable', 'Inventario de Productos', 'productos.pdf', meta, [7], 'landscape');
+    } else {
+        alert('La función de exportación no está disponible en este momento.');
+    }
+}
+
+// ===== Import Modal =====
+function openImportModal() {
+    const modal = document.getElementById('importModal');
+    if (modal) modal.classList.add('active');
+}
+function closeImportModal() {
+    const modal = document.getElementById('importModal');
+    if (modal) modal.classList.remove('active');
+}
+
+
+
+// Close modal on overlay click
+document.querySelectorAll('.ap-modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+});
+</script>
+{% endblock %}

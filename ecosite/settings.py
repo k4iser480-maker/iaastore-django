@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure--rs%$%c!6is6l)0fkxf6@p0u^o@!6x-q4hg7vuce906-v-+tze
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'store.apps.StoreConfig',
     'carts.apps.CartsConfig',
+    'orders.apps.OrdersConfig',
+    'rest_framework',
+    'ecosite.apps.EcositeConfig',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'accounts.middleware.ReferralMiddleware',
+    'accounts.middleware.TransportistaStoreAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'ecosite.urls'
@@ -67,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'category.context_processors.menu_links',
                 'carts.context_processors.counter',
+                'store.context_processors.bcv_context',
             ],
         },
     },
@@ -142,3 +148,41 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'iaastore543@gmail.com'
 EMAIL_HOST_PASSWORD = 'hyzucuyldfpxgaxd'
+
+# Esto le dice a Django que confíe en el túnel de Cloudflare
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ── Configuración de Respaldos Automáticos ──────────────────────────────────
+BACKUP_DIR = BASE_DIR / 'backups'
+BACKUP_RETENTION_DAYS = 30
+BACKUP_EMAIL_RECIPIENT = 'iaastore543@gmail.com'  # Cambiar al correo destino deseado
+BACKUP_ZIP_PASSWORD = '123'       # Contraseña para el ZIP cifrado
+
+# ── Logging ─────────────────────────────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '[%(asctime)s] %(message)s',
+            'datefmt': '%H:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'ecosite.scheduler': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'ecosite.management.commands.backup_db': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}

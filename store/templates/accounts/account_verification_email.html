@@ -1,9 +1,74 @@
 {% autoescape off %}
-
-Hola {{ user.first_name }},
-Por favor, haz clic en el siguiente enlace para activar tu cuenta:
-"http://{{ domain }}{% url 'activate' uidb64=uid token=token %}"
-
-Si crees que no fuiste tú quien solicitó la activación, por favor ignora este correo electrónico.
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activa tu cuenta - IAA Store</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f6f9fc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #3c4257; -webkit-font-smoothing: antialiased; }
+        table { border-spacing: 0; }
+        td { padding: 0; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f6f9fc; padding-top: 40px; padding-bottom: 40px; }
+        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e3e8ee; overflow: hidden; }
+        .header { padding: 35px 40px 15px 40px; text-align: left; }
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #1a1f36; text-decoration: none; margin: 0; }
+        .logo span { color: #39B54A; }
+        .content { padding: 20px 40px 40px 40px; font-size: 15px; line-height: 24px; }
+        h1 { font-size: 20px; color: #1a1f36; font-weight: 600; margin-top: 0; margin-bottom: 20px; }
+        p { margin-top: 0; margin-bottom: 16px; color: #525f7f; }
+        .btn { display: inline-block; background-color: #1a1f36; color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 6px; margin-top: 15px; margin-bottom: 15px; }
+        .footer { max-width: 600px; margin: 0 auto; padding: 30px 40px; text-align: left; color: #8792a2; font-size: 13px; line-height: 20px; }
+        .footer a { color: #8792a2; text-decoration: underline; }
+        .divider { border-top: 1px solid #e3e8ee; margin: 30px 0; }
+        .muted-text { font-size: 13px; color: #8792a2; margin-top: 20px; }
+        .link-text { color: #39B54A; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <center>
+            <table class="main" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td class="header">
+                        <div class="logo">IAA<span>STORE</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="content">
+                        <h1>Activa tu cuenta</h1>
+                        <p>Hola {{ user.first_name }},</p>
+                        <p>Gracias por registrarte en <strong>IAA Store</strong>. Estamos encantados de tenerte con nosotros.</p>
+                        <p>Para comenzar a explorar nuestro catálogo de materiales y realizar tus pedidos, por favor confirma tu dirección de correo electrónico haciendo clic en el botón a continuación:</p>
+                        
+                        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <td align="center" style="padding: 10px 0;">
+                                    <a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}" class="btn">Activar mi cuenta</a>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <div class="divider"></div>
+                        <p class="muted-text">Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+                        <p class="muted-text link-text">http://{{ domain }}{% url 'activate' uidb64=uid token=token %}</p>
+                        
+                        <p class="muted-text" style="margin-top: 30px;">Si no solicitaste este registro, puedes ignorar este correo de forma segura.</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; margin: 0 auto;">
+                <tr>
+                    <td class="footer">
+                        <p style="margin-bottom: 5px;">&copy; 2026 IAA Store - Industrias de Aislantes y Acero, I.A.A. C.A.</p>
+                        <p style="margin-bottom: 5px;">Barcelona, Av. Fuerzas Armadas, Centro Industrial.</p>
+                        <p>¿Necesitas ayuda? Contáctanos a <a href="mailto:info@iaacaven.com">info@iaacaven.com</a></p>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+</body>
+</html>
 {% endautoescape %}

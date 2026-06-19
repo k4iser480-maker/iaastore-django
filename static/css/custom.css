@@ -1,0 +1,364 @@
+/* ===== FUENTES ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #FFFFFF;
+    color: #1A3B57;
+}
+
+/* ===== TITULOS ===== */
+h1, h2, h3, h4, h5, h6,
+.section-title,
+.card-title,
+.title-text,
+.title-page {
+    font-family: 'Montserrat', sans-serif;
+    color: #1A3B57;
+}
+
+/* ===== PRECIOS ===== */
+.price {
+    font-family: 'Montserrat', sans-serif;
+    color: #39B54A;
+    font-weight: 700;
+}
+
+/* ===== BOTONES PRIMARIOS ===== */
+.btn-primary {
+    background-color: #1A3B57;
+    border-color: #1A3B57;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: #142d42;
+    border-color: #142d42;
+}
+
+/* ===== BOTONES OUTLINE ===== */
+.btn-outline-primary {
+    color: #FFFFFF;
+    border-color: #FFFFFF;
+}
+.btn-outline-primary:hover {
+    background-color: #39B54A;
+    border-color: #39B54A;
+    color: #FFFFFF;
+}
+
+/* ===== NAVBAR ===== */
+.header-main {
+    background-color: #1A3B57;
+    border-bottom: 1px solid #142d42;
+}
+.widget-header a {
+    color: #FFFFFF;
+}
+.widget-header a:hover,
+.widget-header:hover i {
+    color: #39B54A;
+}
+.widget-header i {
+    color: #FFFFFF;
+}
+small.title.text-muted {
+    color: #FFFFFF !important;
+}
+.dark-transp {
+    color: #FFFFFF;
+}
+
+/* ===== BARRA DE BUSQUEDA ===== */
+.search .form-control {
+    border-radius: 25px 0 0 25px;
+}
+.search .btn-primary {
+    border-radius: 0 25px 25px 0;
+    background-color: #39B54A;
+    border-color: #39B54A;
+}
+.search .btn-primary:hover {
+    background-color: #2d9140;
+    border-color: #2d9140;
+}
+
+/* ===== DROPDOWN CATEGORIAS ===== */
+.category-wrap .btn-primary {
+    background-color: #39B54A;
+    border-color: #39B54A;
+}
+.category-wrap .btn-primary:hover {
+    background-color: #2d9140;
+    border-color: #2d9140;
+}
+
+/* ===== CARDS DE PRODUCTOS ===== */
+.card-product-grid {
+    border: 1px solid #E0E0E0;
+}
+.card-product-grid:hover {
+    box-shadow: 0 4px 15px rgba(26, 59, 87, 0.15);
+}
+[class*=card-product] a.title {
+    color: #1A3B57;
+    font-family: 'Inter', sans-serif;
+}
+[class*=card-product] a.title:hover {
+    color: #39B54A;
+}
+
+/* --- Product Item (NewStore Style) --- */
+.product-item {
+    transition: .5s;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+.product-item:hover {
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+}
+.product-img {
+    position: relative;
+    overflow: hidden;
+}
+.product-img img {
+    transition: .5s;
+    height: 250px;
+    object-fit: contain;
+}
+.product-item:hover .product-img img {
+    transform: scale(1.15);
+}
+.product-action {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.7);
+    opacity: 0;
+    transition: .5s;
+}
+.product-item:hover .product-action {
+    opacity: 1;
+}
+.product-action a.btn {
+    margin: 0 3px;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    background-color: #1A3B57;
+    color: #ffffff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.product-action a.btn:hover {
+    background-color: #39B54A;
+}
+.product-item:hover .product-action a.btn {
+    transform: translateY(0);
+}
+.product-item:hover .product-action a.btn:nth-child(1) { transition-delay: 0.0s; }
+.product-item:hover .product-action a.btn:nth-child(2) { transition-delay: 0.05s; }
+.product-item:hover .product-action a.btn:nth-child(3) { transition-delay: 0.1s; }
+
+/* ===== LINKS ===== */
+a:hover {
+    color: #39B54A;
+}
+.itemside a.title:hover {
+    color: #39B54A;
+}
+
+/* ===== SEPARADORES ===== */
+hr {
+    border-color: #E0E0E0;
+}
+.border-bottom {
+    border-bottom: 1px solid #E0E0E0 !important;
+}
+
+/* ===== SECCION HEADING ===== */
+.section-heading {
+    border-bottom: 2px solid #E0E0E0;
+    padding-bottom: 10px;
+}
+
+/* ===== BARRA DE FILTROS (SIDEBAR) ===== */
+.section-title::after {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 0;
+  top: 50%;
+  left: 0;
+  border-top: 1px dashed #bec5cb;
+  z-index: -1;
+}
+
+/* Checkboxes color verde (#39B54A) */
+.custom-control-input:checked ~ .custom-control-label::before {
+    color: #fff;
+    border-color: #39B54A;
+    background-color: #39B54A;
+}
+.custom-control-input:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 0.2rem rgba(57, 181, 74, 0.25);
+}
+.custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+    border-color: #39B54A;
+}
+.custom-control-input:not(:disabled):active ~ .custom-control-label::before {
+    color: #fff;
+    background-color: #a7dfb0;
+    border-color: #a7dfb0;
+}
+
+/* ===== FOOTER ===== */
+.section-footer .title {
+    color: #1A3B57;
+    font-family: 'Montserrat', sans-serif;
+}
+.section-footer ul a:hover {
+    color: #39B54A;
+}
+
+/* ===== BADGES ===== */
+.badge-danger,
+.notify {
+    background-color: #39B54A;
+}
+
+/* ===== TRACKING ===== */
+.tracking-wrap .step.active .icon,
+.tracking-wrap .step.active:before {
+    background: #1A3B57;
+}
+
+/* ===== HERO BANNER (estilo newstore - single banner) ===== */
+.hero-banner {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.hero-banner__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.hero-banner__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Placeholder gradient while no image is set */
+.hero-banner__placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1A3B57 0%, #2a5a7e 40%, #39B54A 100%);
+}
+
+.hero-banner__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(26, 59, 87, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.hero-banner__content {
+    text-align: center;
+    padding: 20px;
+    max-width: 750px;
+}
+
+.hero-banner__title {
+    color: #FFFFFF !important;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 3.2rem;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    margin-bottom: 18px;
+    line-height: 1.15;
+}
+
+.hero-banner__subtitle {
+    color: rgba(255, 255, 255, 0.92);
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 24px auto;
+    line-height: 1.6;
+}
+
+.hero-banner__btn {
+    color: #FFFFFF;
+    border: 2px solid #FFFFFF;
+    padding: 12px 34px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 0.85rem;
+    transition: all 0.35s ease;
+    border-radius: 0;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.hero-banner__btn:hover {
+    background-color: #39B54A;
+    border-color: #39B54A;
+    color: #FFFFFF;
+    text-decoration: none;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(57, 181, 74, 0.45);
+}
+
+/* ===== RESPONSIVE HERO BANNER ===== */
+@media (max-width: 991px) {
+    .hero-banner {
+        height: 360px;
+    }
+    .hero-banner__title {
+        font-size: 2.2rem;
+    }
+    .hero-banner__subtitle {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .hero-banner {
+        height: 260px;
+    }
+    .hero-banner__title {
+        font-size: 1.5rem;
+    }
+    .hero-banner__subtitle {
+        display: none;
+    }
+    .hero-banner__btn {
+        padding: 8px 20px;
+        font-size: 0.75rem;
+    }
+}
+

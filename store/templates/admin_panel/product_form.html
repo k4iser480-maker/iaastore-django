@@ -1,0 +1,230 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load rbac_tags %}
+
+{% block breadcrumb %}
+<span class="sep">›</span> <a href="{% url 'admin_products' %}">Productos</a> <span class="sep">›</span> {{ action }}
+{% endblock %}
+
+{% block page_title %}{{ action }} Producto{% endblock %}
+{% block page_desc %}{% if action == 'Crear' %}Agrega un nuevo producto al catálogo.{% else %}Modifica los datos del producto.{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+    .ap-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 22px;
+    }
+    .ap-switch input { opacity: 0; width: 0; height: 0; }
+    .ap-slider {
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #ccc; transition: .4s; border-radius: 34px;
+    }
+    .ap-slider:before {
+        position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px;
+        background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .ap-slider { background-color: var(--ap-accent); }
+    input:checked + .ap-slider:before { transform: translateX(18px); }
+    .img-preview {
+        width: 120px; height: 120px; border-radius: 10px; object-fit: contain;
+        border: 1px solid var(--ap-border); background: #fff; padding: 4px;
+    }
+</style>
+
+<div class="ap-card">
+    <div class="ap-card-body">
+        {% if messages %}
+            {% for message in messages %}
+            <div style="background: {% if message.tags == 'error' %}#ef4444{% else %}#10b981{% endif %}; color: white; padding: 10px; border-radius: 6px; margin-bottom: 20px;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Image -->
+            <div class="ap-form-group" style="margin-bottom: 24px;">
+                <label class="ap-label">{{ form.images.label }}</label>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    {% if product and product.images %}
+                    <img src="{{ product.images.url }}" class="img-preview" alt="Producto">
+                    {% else %}
+                    <div style="width: 120px; height: 120px; border-radius: 10px; border: 2px dashed var(--ap-border); display: flex; align-items: center; justify-content: center; color: var(--ap-text-muted);">
+                        <i class="fas fa-image" style="font-size: 32px;"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        {{ form.images }}
+                        <div class="ap-form-help" style="margin-top: 6px;">JPG, PNG o WebP. Se recomienda 800x800px.</div>
+                    </div>
+                </div>
+                {% if form.images.errors %}<div style="color: #ef4444; font-size: 12px; margin-top: 6px;">{{ form.images.errors }}</div>{% endif %}
+            </div>
+
+            <!-- Name & Category -->
+            <div class="ap-grid-2" style="margin-bottom: 20px;">
+                <div class="ap-form-group">
+                    <label class="ap-label">{{ form.product_name.label }} *</label>
+                    {{ form.product_name }}
+                    {% if form.product_name.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.product_name.errors }}</div>{% endif %}
+                </div>
+                <div class="ap-form-group">
+                    <label class="ap-label">{{ form.Category.label }} *</label>
+                    {{ form.Category }}
+                    {% if form.Category.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.Category.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="ap-form-group" style="margin-bottom: 20px;">
+                <label class="ap-label">{{ form.description.label }}</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.description.errors }}</div>{% endif %}
+            </div>
+
+            <!-- Price, Stock, Available -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <div class="ap-form-group">
+                    <label class="ap-label">{{ form.price.label }} *</label>
+                    {{ form.price }}
+                    {% if form.price.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.price.errors }}</div>{% endif %}
+                </div>
+                <div class="ap-form-group">
+                    <label class="ap-label">{{ form.stock.label }} *</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.stock.errors }}</div>{% endif %}
+                </div>
+                <div class="ap-form-group">
+                    <label class="ap-label">{{ form.is_available.label }}</label>
+                    <div style="padding-top: 8px;">
+                        <label class="ap-switch">
+                            <input type="checkbox" name="is_available" {% if form.is_available.value %}checked{% endif %}>
+                            <span class="ap-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sale Information -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px dashed var(--ap-border);">
+                <div class="ap-form-group">
+                    <label class="ap-label">{{ form.is_on_sale.label }}</label>
+                    <div style="padding-top: 8px;">
+                        <label class="ap-switch">
+                            <input type="checkbox" name="is_on_sale" id="id_is_on_sale" {% if form.is_on_sale.value %}checked{% endif %}>
+                            <span class="ap-slider"></span>
+                        </label>
+                    </div>
+                    <div class="ap-form-help" style="margin-top: 6px;">Activa esta opción para destacar el producto en oferta.</div>
+                </div>
+                <div class="ap-form-group">
+                    <label class="ap-label">{{ form.old_price.label }}</label>
+                    {{ form.old_price }}
+                    <div class="ap-form-help" style="margin-top: 6px;">Ingresa el precio original que aparecerá tachado. Recuerda que el 'Precio' arriba será el nuevo precio de venta.</div>
+                    {% if form.old_price.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.old_price.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <!-- Logistics Information -->
+            <div style="margin-bottom: 24px; padding: 15px; background: #f0f7ff; border-radius: 8px; border: 1px dashed #bfe0ff;">
+                <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 14px; color: #1A3B57;"><i class="fas fa-truck"></i> Información de Logística y Envío</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px;">
+                    <div class="ap-form-group">
+                        <label class="ap-label">{{ form.gross_weight.label }}</label>
+                        {{ form.gross_weight }}
+                        {% if form.gross_weight.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.gross_weight.errors }}</div>{% endif %}
+                    </div>
+                    <div class="ap-form-group">
+                        <label class="ap-label">{{ form.length.label }}</label>
+                        <div style="display: flex; gap: 8px;">
+                            <div style="flex: 2;">{{ form.length }}</div>
+                            <div style="flex: 1;">{{ form.length_unit }}</div>
+                        </div>
+                        {% if form.length.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.length.errors }}</div>{% endif %}
+                    </div>
+                    <div class="ap-form-group">
+                        <label class="ap-label">{{ form.width.label }}</label>
+                        <div style="display: flex; gap: 8px;">
+                            <div style="flex: 2;">{{ form.width }}</div>
+                            <div style="flex: 1;">{{ form.width_unit }}</div>
+                        </div>
+                        {% if form.width.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.width.errors }}</div>{% endif %}
+                    </div>
+                    <div class="ap-form-group">
+                        <label class="ap-label">{{ form.height.label }}</label>
+                        <div style="display: flex; gap: 8px;">
+                            <div style="flex: 2;">{{ form.height }}</div>
+                            <div style="flex: 1;">{{ form.height_unit }}</div>
+                        </div>
+                        {% if form.height.errors %}<div style="color: #ef4444; font-size: 12px;">{{ form.height.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optional Features -->
+            <div style="margin-bottom: 24px; padding: 15px; background: #fffdf5; border-radius: 8px; border: 1px dashed #e5c384;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="margin: 0; font-size: 14px; color: #1A3B57;"><i class="fas fa-list-ul"></i> Características Adicionales (Opcional)</h4>
+                    <button type="button" class="ap-btn" onclick="addFeatureRow()" style="padding: 6px 12px; font-size: 12px; border-color: #1A3B57; color: #1A3B57;">
+                        <i class="fas fa-plus"></i> Agregar Característica
+                    </button>
+                </div>
+                
+                <div id="features-container">
+                    {% if product and product.features.all %}
+                        {% for feature in product.features.all %}
+                        <div class="feature-row" style="display: flex; gap: 15px; margin-bottom: 10px; align-items: center;">
+                            <div style="flex: 1;">
+                                <input type="text" name="feature_name[]" class="ap-input" placeholder="Nombre (ej. Material)" value="{{ feature.name }}" required>
+                            </div>
+                            <div style="flex: 2;">
+                                <input type="text" name="feature_value[]" class="ap-input" placeholder="Valor (ej. Acero Inoxidable)" value="{{ feature.value }}" required>
+                            </div>
+                            <div>
+                                <button type="button" class="ap-btn" style="color: #ef4444; border-color: #ef4444; padding: 8px 12px;" onclick="this.closest('.feature-row').remove()">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <a href="{% url 'admin_products' %}" class="ap-btn">Cancelar</a>
+                <button type="submit" class="ap-btn ap-btn-primary">
+                    <i class="fas fa-save"></i> {% if action == 'Crear' %}Crear Producto{% else %}Guardar Cambios{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function addFeatureRow() {
+        const container = document.getElementById('features-container');
+        const row = document.createElement('div');
+        row.className = 'feature-row';
+        row.style.cssText = 'display: flex; gap: 15px; margin-bottom: 10px; align-items: center;';
+        row.innerHTML = `
+            <div style="flex: 1;">
+                <input type="text" name="feature_name[]" class="ap-input" placeholder="Nombre (ej. Material)" required>
+            </div>
+            <div style="flex: 2;">
+                <input type="text" name="feature_value[]" class="ap-input" placeholder="Valor (ej. Acero Inoxidable)" required>
+            </div>
+            <div>
+                <button type="button" class="ap-btn" style="color: #ef4444; border-color: #ef4444; padding: 8px 12px;" onclick="this.closest('.feature-row').remove()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+</script>
+{% endblock %}

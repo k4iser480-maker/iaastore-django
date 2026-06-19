@@ -1,0 +1,19 @@
+{
+  "module": "dashboard",
+  "title": "Dashboard",
+  "permission": "",
+  "questions": [
+    "que es el dashboard",
+    "para que sirve el dashboard",
+    "estadisticas",
+    "metricas"
+  ],
+  "answer": "El Dashboard es la pantalla principal que te ofrece un resumen en tiempo real del estado del negocio.\n\nAquí puedes ver métricas clave como:\n- Total de ventas e ingresos.\n- Cantidad de usuarios registrados y pedidos pendientes.\n- Gráficas de rendimiento temporal.\n- Lista rápida de actividad reciente.",
+  "keywords": [
+    "metricas",
+    "dashboard",
+    "estadisticas",
+    "sirve",
+    "para"
+  ]
+}

@@ -1,0 +1,216 @@
+{% load static rbac_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Panel Admin{% endblock %} — IAAStore</title>
+<link href="{% static 'css/admin_panel.css' %}?v=1.0" rel="stylesheet">
+<link href="{% static 'fonts/fontawesome/css/all.min.css' %}" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+<div class="admin-panel">
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="ap-sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="ap-sidebar" id="apSidebar">
+    <a href="{% url 'admin_dashboard' %}" class="ap-sidebar-logo">
+        <div class="logo-icon">IA</div>
+        <span>IAAStore</span>
+    </a>
+
+    <div class="ap-sidebar-section">Overview</div>
+    <ul class="ap-sidebar-nav">
+        {% if not user.is_transportista or user.is_superadmin %}
+        <li><a href="{% url 'admin_dashboard' %}" class="{% if active_page == 'dashboard' %}active{% endif %}"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+        {% endif %}
+    </ul>
+
+    <div class="ap-sidebar-section">Commerce</div>
+    <ul class="ap-sidebar-nav">
+        {% if user|can:'view_orders' or user.is_superadmin %}
+        <li><a href="{% url 'admin_orders' %}" class="{% if active_page == 'orders' %}active{% endif %}"><i class="fas fa-shopping-bag"></i> Pedidos <span class="ap-nav-badge">{{ pending_orders_count|default:"" }}</span></a></li>
+        {% if not user.is_transportista or user.is_superadmin %}
+        <li><a href="{% url 'admin_transportistas' %}" class="{% if active_page == 'transportistas' %}active{% endif %}"><i class="fas fa-truck"></i> Transportistas</a></li>
+        {% endif %}
+        {% endif %}
+        {% if user|can:'view_inventory' or user.is_superadmin %}
+        <li><a href="{% url 'admin_products' %}" class="{% if active_page == 'products' %}active{% endif %}"><i class="fas fa-box"></i> Productos</a></li>
+        {% endif %}
+        {% if user|can:'view_users' or user.is_superadmin %}
+        <li><a href="{% url 'admin_users' %}" class="{% if active_page == 'users' or active_page == 'customers' %}active{% endif %}"><i class="fas fa-users"></i> Usuarios</a></li>
+        {% endif %}
+    </ul>
+
+    <div class="ap-sidebar-section">System</div>
+    <ul class="ap-sidebar-nav">
+        {% if user|can:'view_roles' or user.is_superadmin %}
+        <li><a href="{% url 'admin_roles' %}" class="{% if active_page == 'roles' %}active{% endif %}"><i class="fas fa-user-shield"></i> Roles y Permisos</a></li>
+        {% endif %}
+        {% if user.is_superadmin %}
+        <li><a href="{% url 'admin_activity_log' %}" class="{% if active_page == 'logs' %}active{% endif %}"><i class="fas fa-history"></i> Registro de Actividad</a></li>
+        {% endif %}
+        {% if user|can:'view_backups' or user.is_superadmin %}
+        <li><a href="{% url 'admin_backups' %}" class="{% if active_page == 'backups' %}active{% endif %}"><i class="fas fa-shield-alt"></i> Respaldos</a></li>
+        {% endif %}
+        {% if user.is_superadmin %}
+        <li><a href="{% url 'admin_settings' %}" class="{% if active_page == 'settings' %}active{% endif %}"><i class="fas fa-cog"></i> Configuración</a></li>
+        {% endif %}
+        {% if not user.is_transportista or user.is_superadmin %}
+        <li><a href="{% url 'home' %}" target="_blank"><i class="fas fa-external-link-alt"></i> Ver Tienda</a></li>
+        {% endif %}
+        <li>
+                <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        </li>
+    </ul>
+
+    <div class="ap-sidebar-footer">
+        <a href="{% url 'admin_profile' %}">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile" class="ap-sidebar-user-avatar" style="object-fit: cover; border: 2px solid var(--ap-accent);">
+            {% else %}
+                <div class="ap-sidebar-user-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+            {% endif %}
+            <div class="ap-sidebar-user-info">
+                <div class="name">{{ user.first_name }} {{ user.last_name }}</div>
+                <div class="role">{% if user.is_superadmin %}Super Admin{% elif user.roles.all %}{{ user.roles.first.name }}{% else %}Admin{% endif %}</div>
+            </div>
+        </a>
+    </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main class="ap-main">
+    <!-- Header -->
+    <div class="ap-header">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <button class="ap-mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+            <div>
+                <div class="ap-breadcrumb">
+                    <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                    {% block breadcrumb %}{% endblock %}
+                </div>
+                <h1 class="ap-page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                <p class="ap-page-desc">{% block page_desc %}{% endblock %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="ap-content">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+function exportTableToPDF(tableId, title, filename, metadata = {}, excludeCols = [], orientation = 'portrait') {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF(orientation, 'pt', 'a4');
+    
+    // Add header
+    doc.setFontSize(16);
+    doc.setTextColor(26, 31, 54);
+    doc.text("Industrias de Aislantes y Aceros C.A.", 40, 40);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(100, 100, 100);
+    doc.text(title, 40, 60);
+    
+    let yPos = 80;
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    
+    if (metadata.user) {
+        doc.text(`Generado por: ${metadata.user}`, 40, yPos);
+        yPos += 15;
+    }
+    if (metadata.date) {
+        doc.text(`Fecha de exportación: ${metadata.date}`, 40, yPos);
+        yPos += 15;
+    }
+    if (metadata.filters) {
+        doc.text(`Filtros aplicados: ${metadata.filters}`, 40, yPos);
+        yPos += 15;
+    }
+    
+    yPos += 10;
+    
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    
+    // Parse headers manually
+    const headers = [];
+    const ths = table.querySelectorAll('thead th');
+    ths.forEach((th, index) => {
+        if (!excludeCols.includes(index)) {
+            headers.push(th.innerText.trim());
+        }
+    });
+    
+    // Parse body manually
+    const data = [];
+    const rows = [...table.querySelectorAll('tbody tr')].filter(row => row.offsetParent !== null);
+    
+    // Check for empty message
+    if (rows.length === 1 && rows[0].querySelectorAll('td').length === 1 && rows[0].innerText.toLowerCase().includes('no hay')) {
+        // empty table, ignore
+    } else {
+        rows.forEach(row => {
+            const rowData = [];
+            const tds = row.querySelectorAll('td, th');
+            tds.forEach((td, index) => {
+                if (!excludeCols.includes(index)) {
+                    // Extract text
+                    let text = td.innerText.trim();
+                    // Clean up newlines (e.g. from badges and labels)
+                    text = text.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+                    rowData.push(text);
+                }
+            });
+            data.push(rowData);
+        });
+    }
+    
+    doc.autoTable({
+        startY: yPos,
+        head: [headers],
+        body: data,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 4, textColor: [40, 40, 40], font: 'helvetica' },
+        headStyles: { fillColor: [26, 31, 54], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [249, 250, 251] }
+    });
+    
+    doc.save(filename);
+}
+</script>
+
+<script>
+// Mobile sidebar toggle
+const sidebar = document.getElementById('apSidebar');
+const overlay = document.getElementById('sidebarOverlay');
+const toggle = document.getElementById('mobileToggle');
+if (toggle) {
+    toggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+    });
+}
+if (overlay) {
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    });
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

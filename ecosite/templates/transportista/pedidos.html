@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<style>
+    .driver-dashboard {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 16px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .orders-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    @media (min-width: 768px) {
+        .orders-grid {
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        }
+        .driver-stats {
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+        }
+        .driver-header {
+            max-width: 600px;
+            margin: 0 auto 24px auto;
+        }
+        .history-table {
+            font-size: 0.95rem;
+        }
+        .history-table th, .history-table td {
+            padding: 12px 16px;
+        }
+    }
+
+    .driver-header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    .driver-header h2 {
+        font-size: 1.4rem;
+        color: #1a1f36;
+        margin-bottom: 4px;
+    }
+    .driver-header p {
+        color: #8792a2;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    .driver-stats {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .driver-stat {
+        flex: 1;
+        background: #fff;
+        border: 1px solid #e3e8ee;
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+    }
+    .driver-stat .number {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #1a1f36;
+        line-height: 1;
+    }
+    .driver-stat .label {
+        font-size: 0.75rem;
+        color: #8792a2;
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .driver-stat.active .number { color: #f59e0b; }
+    .driver-stat.done .number { color: #10b981; }
+
+    .section-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #8792a2;
+        font-weight: 600;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e3e8ee;
+    }
+
+    /* Active order cards */
+    .order-card {
+        background: #fff;
+        border: 1px solid #e3e8ee;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s;
+    }
+    .order-card:hover {
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .order-number {
+        font-weight: 700;
+        color: #1a1f36;
+        font-size: 0.95rem;
+    }
+    .order-badge {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .badge-assigned { background: #ede9fe; color: #7c3aed; }
+    .badge-picked { background: #dbeafe; color: #2563eb; }
+    .badge-transit { background: #fef3c7; color: #d97706; }
+    .badge-nearby { background: #d1fae5; color: #059669; }
+
+    .order-info {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 4px 10px;
+        font-size: 0.88rem;
+        color: #525f7f;
+        margin-bottom: 16px;
+    }
+    .order-info .icon {
+        color: #8792a2;
+        width: 16px;
+        text-align: center;
+    }
+
+    .action-btn {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .action-btn:active {
+        transform: scale(0.98);
+    }
+    .btn-pickup { background: #2563eb; color: #fff; }
+    .btn-transit { background: #d97706; color: #fff; }
+    .btn-nearby { background: #059669; color: #fff; }
+    .btn-deliver { background: #10b981; color: #fff; }
+    .btn-detail {
+        display: block;
+        text-align: center;
+        margin-top: 8px;
+        color: #6366f1;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    /* History table */
+    .history-table {
+        width: 100%;
+        font-size: 0.85rem;
+    }
+    .history-table th {
+        text-align: left;
+        color: #8792a2;
+        font-weight: 600;
+        padding: 8px 6px;
+        border-bottom: 1px solid #e3e8ee;
+    }
+    .history-table td {
+        padding: 10px 6px;
+        border-bottom: 1px solid #f0f0f0;
+        color: #525f7f;
+    }
+    .history-table a {
+        color: #6366f1;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 30px 20px;
+        color: #8792a2;
+        font-size: 0.9rem;
+    }
+    .empty-state i {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="driver-dashboard">
+    {% include 'includes/alerts.html' %}
+
+    <div class="driver-header" style="position: relative;">
+        <h2>🚚 Panel de Entregas</h2>
+        <p>Hola, {{ user.first_name }} | <a href="{% url 'logout' %}" style="color: #ef4444; text-decoration: none; font-size: 0.85rem;">Cerrar Sesión</a></p>
+    </div>
+
+    <div class="driver-stats">
+        <div class="driver-stat active">
+            <div class="number">{{ pedidos_activos|length }}</div>
+            <div class="label">Activos</div>
+        </div>
+        <div class="driver-stat done">
+            <div class="number">{{ pedidos_historial|length }}</div>
+            <div class="label">Entregados</div>
+        </div>
+    </div>
+
+    <!-- Active Orders -->
+    <div class="section-title">Pedidos Activos</div>
+
+    {% if pedidos_activos %}
+        <div class="orders-grid">
+        {% for pedido in pedidos_activos %}
+        <div class="order-card" style="margin-bottom: 0;">
+            <div class="order-card-header">
+                <span class="order-number">Pedido #{{ pedido.order_number }}</span>
+                <span class="order-badge
+                    {% if pedido.status == 'Assigned' %}badge-assigned
+                    {% elif pedido.status == 'Picked Up' %}badge-picked
+                    {% elif pedido.status == 'In Transit' %}badge-transit
+                    {% elif pedido.status == 'Nearby' %}badge-nearby
+                    {% endif %}">
+                    {% if pedido.status == 'Assigned' %}Asignado
+                    {% elif pedido.status == 'Picked Up' %}Recogido
+                    {% elif pedido.status == 'In Transit' %}En Camino
+                    {% elif pedido.status == 'Nearby' %}Cerca
+                    {% endif %}
+                </span>
+            </div>
+            <div class="order-info">
+                <span class="icon"><i class="fas fa-user"></i></span>
+                <span>{{ pedido.full_name }}</span>
+                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                <span>{{ pedido.address_line_1 }}, {{ pedido.city }}</span>
+                <span class="icon"><i class="fas fa-phone"></i></span>
+                <span>{{ pedido.phone }}</span>
+            </div>
+
+            {% if pedido.next_status %}
+            <form method="POST" action="{% url 'transportista:transportista_update_status' pedido.id %}" class="delivery-form">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="{{ pedido.next_status }}">
+                <input type="hidden" name="latitude" class="geo-lat">
+                <input type="hidden" name="longitude" class="geo-lng">
+                <input type="hidden" name="accuracy" class="geo-acc">
+                <button type="submit" class="action-btn
+                    {% if pedido.next_status == 'picked_up' %}btn-pickup
+                    {% elif pedido.next_status == 'in_transit' %}btn-transit
+                    {% elif pedido.next_status == 'nearby' %}btn-nearby
+                    {% elif pedido.next_status == 'delivered' %}btn-deliver
+                    {% endif %}"
+                    onclick="return confirmAndGeolocate(this, '{{ pedido.next_status_label }}')">
+                    {{ pedido.next_status_label }}
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'transportista:transportista_pedido_detail' pedido.id %}" class="btn-detail">
+                Ver detalle completo →
+            </a>
+        </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-check-circle"></i>
+            No tienes pedidos activos en este momento.
+        </div>
+    {% endif %}
+
+    <!-- History -->
+    <div class="section-title" style="margin-top: 30px;">Historial de Entregas</div>
+
+    {% if pedidos_historial %}
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Pedido</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos_historial %}
+            <tr>
+                <td>#{{ pedido.order_number }}</td>
+                <td>{{ pedido.full_name }}</td>
+                <td>{{ pedido.fecha_entrega|date:"d/m/Y H:i" }}</td>
+                <td><a href="{% url 'transportista:transportista_pedido_detail' pedido.id %}">Ver</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            No tienes entregas completadas aún.
+        </div>
+    {% endif %}
+</div>
+
+<script>
+/**
+ * GPS capture: silent and non-blocking.
+ * If GPS fails or user denies permission, the form submits anyway.
+ */
+function confirmAndGeolocate(btn, actionLabel) {
+    if (!confirm('¿' + actionLabel + '?')) return false;
+
+    const form = btn.closest('form');
+
+    // Try to get GPS (non-blocking)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                form.querySelector('.geo-lat').value = pos.coords.latitude;
+                form.querySelector('.geo-lng').value = pos.coords.longitude;
+                form.querySelector('.geo-acc').value = pos.coords.accuracy;
+                form.submit();
+            },
+            function(err) {
+                // GPS failed — submit anyway without coordinates
+                console.log('GPS no disponible:', err.message);
+                form.submit();
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+        );
+        return false; // Prevent default submit, we'll submit manually
+    }
+
+    // No geolocation API — submit normally
+    return true;
+}
+</script>
+
+{% endblock %}

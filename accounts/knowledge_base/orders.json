@@ -1,0 +1,22 @@
+{
+  "module": "orders",
+  "title": "Pedidos",
+  "permission": "view_orders",
+  "questions": [
+    "ver pedidos",
+    "ordenes",
+    "estado de un pedido",
+    "asignar transportista",
+    "imprimir pedido"
+  ],
+  "answer": "El módulo de Pedidos controla el ciclo de vida de cada compra.\n\nAcciones principales:\n- **Listado y Filtros:** Visualiza y filtra las órdenes según su estado (Nuevo, Aceptado, En Camino, Entregado).\n- **Actualizar Estado:** Al entrar al detalle de un pedido, puedes cambiar su estado.\n- **Transportistas:** Asigna a un conductor específico para la entrega.\n- **Reportes:** Exporta todos los pedidos actuales a PDF.",
+  "keywords": [
+    "pedidos",
+    "asignar",
+    "imprimir",
+    "pedido",
+    "transportista",
+    "ordenes",
+    "estado"
+  ]
+}

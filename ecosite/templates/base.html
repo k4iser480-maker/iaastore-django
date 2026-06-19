@@ -7,9 +7,9 @@
 <meta http-equiv="cache-control" content="max-age=604800" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<title>GreatKart | One of the Biggest Online Shopping Platform</title>
+<title>IAAStore | Tu tienda de materiales de construcción</title>
 
-<link href="{% static 'images/favicon.ico' %}" rel="shortcut icon" type="image/x-icon">
+<link href="{% static 'images/fabiconnew2.ico' %}" rel="shortcut icon" type="image/x-icon">
 
 <!-- jQuery -->
 <script src="{% static 'js/jquery-2.0.0.min.js' %}" type="text/javascript"></script>
@@ -24,30 +24,73 @@
 <!-- custom style -->
 <link href="{% static 'css/ui.css' %}" rel="stylesheet" type="text/css"/>
 <link href="{% static 'css/responsive.css' %}" rel="stylesheet" media="only screen and (max-width: 1200px)" />
+<link href="{% static 'css/custom.css' %}?v=1.2" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<!-- Animate.css for banner animations -->
+<link href="{% static 'lib/animate/animate.min.css' %}" rel="stylesheet">
 
 <!-- custom javascript -->
 <script src="{% static 'js/script.js' %}" type="text/javascript"></script>
 
-<script type="text/javascript">
-/// some script
-
-// jquery ready start
-$(document).ready(function() {
-	// jQuery code
-
-}); 
-// jquery end
-</script>
+<!-- PayPal Script -->
+<script src="https://www.paypal.com/sdk/js?client-id=AVk2jbhi3U37zjhCF6R14FSbUXtJHX9LEUNpykY3eUzu5r5JrK-k-El0LOkr42xN3PrmUQn0Urqqgnml&currency=USD&disable-funding=paylater"></script>
 
 </head>
 <body>
 
+{% block navbar %}
 <!-- navbar -->
 {% include 'includes/navbar.html' %}
+{% endblock %}
 
 {% block content %}
 <!-- content -->
-    {% endblock %}
+{% endblock %}
 
-    <!-- footer -->
+{% block footer %}
+<!-- footer -->
 {% include 'includes/footer.html' %}
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
+
+<!-- Wishlist styles & AJAX -->
+<style>
+.wishlist-btn.wishlisted { background-color: #e74c3c !important; }
+.wishlist-btn.wishlisted i { color: #fff !important; }
+</style>
+<script>
+$(document).on('click', '.wishlist-btn', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var btn = $(this);
+    var productId = btn.data('product-id');
+    $.ajax({
+        url: '/store/toggle_wishlist/' + productId + '/',
+        type: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        success: function(data) {
+            // Update ALL buttons for this product on the page
+            var allBtns = $('.wishlist-btn[data-product-id="' + productId + '"]');
+            if (data.added) {
+                allBtns.addClass('wishlisted');
+                allBtns.find('i').removeClass('far').addClass('fas');
+            } else {
+                allBtns.removeClass('wishlisted');
+                allBtns.find('i').removeClass('fas').addClass('far');
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 401) {
+                window.location.href = '{% url "login" %}';
+            }
+        }
+    });
+});
+</script>
+
+{% include 'includes/chatbot_widget.html' %}
+
+</body>
+</html>
